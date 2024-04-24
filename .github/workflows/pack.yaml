@@ -59,12 +59,11 @@ jobs:
         '${{ github.ref_name }}'
         --repo '${{ github.repository }}'
         --notes ""
-    - name: Upload artifact signatures to GitHub Release
+    - name: Upload artifacts to GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
       # Upload to GitHub Release using the `gh` CLI.
-      # `dist/` contains the built packages, and the
-      # sigstore-produced signatures and certificates.
+      # `dist/` contains the built packages
       run: >-
         gh release upload
         '${{ github.ref_name }}' dist/**
