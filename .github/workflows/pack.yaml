@@ -26,9 +26,9 @@ jobs:
     - name: Create dist folder
       run: mkdir dist
     - name: Pack client
-      run: python3 -m pybunch -r . -e client.jebsync -o dist/JEBSync.py
+      run: python3 -m pybunch -r . -e client.jebsync -so -o dist/JEBSync.py
     - name: Pack server
-      run: python3 -m pybunch -r . -e server.__main__ -o dist/server.py
+      run: python3 -m pybunch -r . -e server.__main__ -so -o dist/server.py
     - name: Store the distribution packages
       uses: actions/upload-artifact@v3
       with:
