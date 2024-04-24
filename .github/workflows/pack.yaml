@@ -33,15 +33,13 @@ jobs:
 
   github-release:
     name: >-
-      Sign the Packed Python 🐍 distribution 📦 with Sigstore
-      and upload them to GitHub Release
+      Publish the Packed Python 🐍 distribution 📦 as GitHub Release
     needs:
     - build
     runs-on: ubuntu-latest
 
     permissions:
       contents: write  # IMPORTANT: mandatory for making GitHub Releases
-      id-token: write  # IMPORTANT: mandatory for sigstore
 
     steps:
     - name: Download all the dists
@@ -49,11 +47,6 @@ jobs:
       with:
         name: packed-python-distribution
         path: dist/
-    - name: Sign the dists with Sigstore
-      uses: sigstore/gh-action-sigstore-python@v1.2.3
-      with:
-        inputs: >-
-          ./dist/*.py
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
