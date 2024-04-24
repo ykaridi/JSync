@@ -1,0 +1,17 @@
+venv/
+
+# Local Artifacts
+dist/
+*.egg-info/
+
+# Caches
+__pycache__/
+.jython_cache/
+
+# IDE
+.idea/
+.DS_Store
+
+# Testing
+stores/
+./JEBSync.py
