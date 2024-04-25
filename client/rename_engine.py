@@ -6,26 +6,30 @@ from threading import Lock
 from common.symbol import Symbol, SYMBOL_TYPE_FIELD, SYMBOL_TYPE_METHOD, SYMBOL_TYPE_CLASS
 
 
-METADATA_GROUP_NAME = 'JEBSync'
+METADATA_GROUP_NAME = 'JEBSync <%s>'
 
 
 class RenameEngine(object):
-    def __init__(self):
-        # type: () -> None
+    def __init__(self, connection_description):
+        # type: (str) -> None
         self._lock = Lock()
+        self._connection_description = connection_description
 
     @property
     def locked(self):
         return self._lock.locked()
 
-    @staticmethod
-    def _metadata_group(dex_unit):
+    @property
+    def _metadata_group_name(self):
+        return METADATA_GROUP_NAME % self._connection_description
+
+    def _metadata_group(self, dex_unit):
         # type: (IDexUnit) -> MetadataGroup
         metadata_manager = dex_unit.metadataManager  # type: IMetadataManager
-        if metadata_manager.getGroupByName(METADATA_GROUP_NAME) is None:
-            metadata_manager.addGroup(MetadataGroup(METADATA_GROUP_NAME, MetadataGroupType.STRING))
+        if metadata_manager.getGroupByName(self._metadata_group_name) is None:
+            metadata_manager.addGroup(MetadataGroup(self._metadata_group_name, MetadataGroupType.STRING))
 
-        return metadata_manager.getGroupByName(METADATA_GROUP_NAME)
+        return metadata_manager.getGroupByName(self._metadata_group_name)
 
     def is_original_symbol(self, item):
         # type: (IDexItem) -> bool
