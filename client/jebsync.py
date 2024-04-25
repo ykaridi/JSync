@@ -1,4 +1,6 @@
-# ?description=Connect to JEBSync
+#?description=Activate JEBSync
+#?shortcut=Mod1+J
+
 import functools
 import os
 import re
