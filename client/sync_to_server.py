@@ -38,6 +38,6 @@ class SyncToServer(Runnable):
 
             if symbols:
                 command = UpstreamSymbols(project_id(dex_unit), symbols, loggable=False)
-                # send_packet(self._socket, command.encode())
+                send_packet(self._socket, command.encode())
 
         self._callback()
