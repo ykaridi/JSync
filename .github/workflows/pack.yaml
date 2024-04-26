@@ -23,12 +23,12 @@ jobs:
         pip install
         pybunch
         --user
-    - name: Create dist folder
+    - name: Initialize build process
       run: mkdir dist
-    - name: Pack client
-      run: ./pack_client.sh
-    - name: Pack server
-      run: ./pack_server.sh
+    - name: Build client
+      run: make client
+    - name: Build server
+      run: make server
     - name: Store the distribution packages
       uses: actions/upload-artifact@v3
       with:
