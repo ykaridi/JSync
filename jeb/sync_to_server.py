@@ -27,9 +27,7 @@ class JEBSyncToServer(JavaSyncToServer):
         # type: () -> None
         for dex_unit in self._ctx.mainProject.findUnits(IDexUnit):
             project_symbols = {}
-            # TODO: Fix
-            # for item in itertools.chain(dex_unit.fields, dex_unit.methods, dex_unit.classes):
-            for item in itertools.chain(dex_unit.fields, dex_unit.methods):
+            for item in itertools.chain(dex_unit.fields, dex_unit.methods, dex_unit.classes):
                 if not is_internal(item):
                     continue
 
