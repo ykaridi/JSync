@@ -6,6 +6,7 @@ from jadx.core.dex.nodes import ClassNode, MethodNode, FieldNode
 from jadx.core.codegen import TypeGen
 from jadx.plugins.input.dex.sections import DexClassData
 from jadx.plugins.input.dex import DexReader
+from jadx.core.dex.attributes import AType
 
 
 from common.symbol import Symbol, SYMBOL_TYPE_CLASS, SYMBOL_TYPE_METHOD, SYMBOL_TYPE_FIELD
@@ -31,7 +32,7 @@ def get_name(node):
 
 
 def encode_symbol(node):
-    # type: (ClassNode | MethodNode | FieldNode | IJavaNodeRef) -> Symbol
+    # type: (ClassNode | MethodNode | FieldNode) -> Symbol
     if isinstance(node, ClassNode):
         return Symbol(SYMBOL_TYPE_CLASS,
                       TypeGen.signature(node.classInfo.type),
@@ -125,3 +126,21 @@ def get_node(context, project, symbol):
         return node
     else:
         return None
+
+
+def method_is_override(method):
+    # type: (MethodNode) -> bool
+    override_attr = method.get(AType.METHOD_OVERRIDE)
+    if override_attr is None:
+        return False
+
+    return not override_attr.baseMethods.empty
+
+
+def get_base_methods(method):
+    # type: (MethodNode) -> list[MethodNode]
+    override_attr = method.get(AType.METHOD_OVERRIDE)
+    if override_attr is None:
+        return [method]
+
+    return override_attr.baseMethods

@@ -7,7 +7,7 @@ from client_base.rename_engine import RenameEngineABC
 from java_common.sync_to_server import JavaSyncToServer
 from common.symbol import SYMBOL_TYPE_CLASS, SYMBOL_TYPE_METHOD, SYMBOL_TYPE_FIELD
 
-from .utils import encode_symbol, project_id
+from .utils import encode_symbol, project_id, get_base_methods
 
 
 QUICK = True
@@ -45,19 +45,20 @@ class JADXSyncToServer(JavaSyncToServer):
             cls = self._context.decompiler.searchClassNodeByOrigFullName(ref.declaringClass)
             short_id = ref.shortId
 
-            node = None
+            nodes = []
             if node_type == SYMBOL_TYPE_CLASS:
-                node = cls
+                nodes = [cls]
             elif node_type == SYMBOL_TYPE_FIELD:
-                node = cls.searchFieldByShortId(short_id)
+                nodes = [cls.searchFieldByShortId(short_id)]
             elif node_type == SYMBOL_TYPE_METHOD:
-                node = cls.searchMethodByShortId(short_id)
+                nodes = get_base_methods(cls.searchMethodByShortId(short_id))
 
-            project = project_id(node)
-            symbol = encode_symbol(node)
+            for node in nodes:
+                project = project_id(node)
+                symbol = encode_symbol(node)
 
-            if QUICK or not self._rename_engine.is_symbol_synced(project, symbol):
-                symbols.setdefault(project, []).append(symbol)
+                if QUICK or not self._rename_engine.is_symbol_synced(project, symbol):
+                    symbols.setdefault(project, []).append(symbol)
 
         for project, project_symbols in symbols.items():
             self.upload_symbols(project, project_symbols)
