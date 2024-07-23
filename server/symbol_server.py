@@ -49,7 +49,7 @@ class SymbolServer(ABC):
         payload = command.encode()
         for client in self._project_associations[project]:
             if client != originator:
-                    await self.push_to_client(client, payload)
+                await self.push_to_client(client, payload)
 
     async def push_symbols(self, client: Client, project: str, symbols: List[Symbol]):
         payload = DownstreamSymbols(project, symbols).encode()
@@ -72,9 +72,11 @@ class SymbolServer(ABC):
                 command = Command.decode(packet)
 
                 if isinstance(command, Subscribe):
+                    logging.info(f"[Subscribe] Request from {name} for project <{command.project}>")
                     client.associated_projects.add(command.project)
                     self._project_associations[command.project].add(client)
                 elif isinstance(command, Unsubscribe):
+                    logging.info(f"[Unsubscribe] Request from {name} for project <{command.project}>")
                     client.associated_projects.remove(command.project)
                     if client in self._project_associations[command.project]:
                         self._project_associations[command.project].remove(client)
@@ -88,12 +90,13 @@ class SymbolServer(ABC):
 
                     if command.loggable:
                         for symbol in symbols:
-                            logging.info(f"[Symbol] {name}: {symbol.canonical_signature} -> {symbol.name}")
+                            logging.info(f"[Symbol] {name} @ {command.project}:"
+                                         f" {symbol.canonical_signature} -> {symbol.name}")
 
                     store.push_symbols(symbols, only_changed=False)
                     await self.push_update(command.project, symbols, client)
                 elif isinstance(command, FullSyncRequest):
-                    logging.info(f"[Full Sync] Request from {name}")
+                    logging.info(f"[Full Sync] Request from {name} for project <{command.project}>")
                     store = self._stores[command.project]
                     symbols = list(store.get_latest_symbols())
                     await self.push_symbols(client, command.project, symbols)
