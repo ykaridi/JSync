@@ -1,6 +1,6 @@
 .PHONY: *
 
-all: init jeb server
+all: init jeb jadx server
 
 clean:
 	@echo "Cleaning project"
