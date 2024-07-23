@@ -47,7 +47,7 @@ def method_is_override(method):
 
 
 def is_internal(item):
-    # type: (IDexClass | IDexMethod | IDexField | IDexType)
+    # type: (IDexClass | IDexMethod | IDexField | IDexType) -> bool
     if isinstance(item, IDexClass):
         return True
     else:

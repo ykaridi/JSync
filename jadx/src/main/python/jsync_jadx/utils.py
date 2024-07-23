@@ -7,6 +7,7 @@ from jadx.core.codegen import TypeGen
 from jadx.plugins.input.dex.sections import DexClassData
 from jadx.plugins.input.dex import DexReader
 from jadx.core.dex.attributes import AType
+from jadx.core.dex.instructions.args import ArgType
 
 
 from common.symbol import Symbol, SYMBOL_TYPE_CLASS, SYMBOL_TYPE_METHOD, SYMBOL_TYPE_FIELD
@@ -65,7 +66,7 @@ def project_id(obj):
     elif isinstance(obj, DexReader):
         dex_reader = obj
     else:
-        raise ValueError("Unknown code item")
+        raise ValueError("Unknown code item %s" % type(obj))
 
     internal_id = id(dex_reader)
     if internal_id not in CACHED_IDENTIFIERS:
@@ -73,6 +74,24 @@ def project_id(obj):
         CACHED_IDENTIFIERS[internal_id] = hashlib.md5(data).hexdigest()
 
     return CACHED_IDENTIFIERS[internal_id]
+
+
+def get_class(context, class_name):
+    # type: (JadxPluginContext, str) -> ClassNode
+    for clazz in context.decompiler.classes:
+        clazz = clazz.classNode
+        class_info = clazz.classInfo
+        if class_info.rawName == class_name or class_info.fullName == class_name:
+            return clazz
+
+    root = context.decompiler.root
+    info_storage = root.infoStorage
+    cls_info = info_storage.getCls(ArgType.object(class_name))
+    cls = root.resolveClass(cls_info)
+    if cls is not None:
+        return cls
+
+    raise ValueError("Class %s not found" % class_name)
 
 
 def _get_node(context, symbol):
@@ -84,7 +103,7 @@ def _get_node(context, symbol):
         return None
 
     name = match.group('name').replace('/', '.')
-    cls = context.decompiler.searchClassNodeByOrigFullName(name)
+    cls = get_class(context, name)
     if not cls:
         # Invalid signature: unmatched class
         return None
@@ -137,10 +156,24 @@ def method_is_override(method):
     return not override_attr.baseMethods.empty
 
 
-def get_base_methods(method):
+def get_internal_base_methods(method):
     # type: (MethodNode) -> list[MethodNode]
     override_attr = method.get(AType.METHOD_OVERRIDE)
     if override_attr is None:
         return [method]
 
-    return override_attr.baseMethods
+    return [md for md in override_attr.baseMethods if isinstance(md, MethodNode)]
+
+
+def get_node_by_class_type_and_short_id(context, class_name, node_type, short_id):
+    # type: (JadxPluginContext, str, int, str) -> ClassNode | MethodNode | FieldNode
+    cls = get_class(context, class_name)
+
+    if node_type == SYMBOL_TYPE_CLASS:
+        return cls
+    elif node_type == SYMBOL_TYPE_FIELD:
+        return cls.searchFieldByShortId(short_id)
+    elif node_type == SYMBOL_TYPE_METHOD:
+        return cls.searchMethodByShortId(short_id)
+    else:
+        raise ValueError("Unhandled node type")

@@ -34,7 +34,6 @@ class RenameEngineABC(object):
             path = self._records_path(project)
             if os.path.exists(path):
                 self._rename_records[project] = load_renames(path)
-                print(self._rename_records[project])
             else:
                 self._rename_records[project] = {}
 
@@ -51,7 +50,6 @@ class RenameEngineABC(object):
     def record_rename(self, project, symbol):
         # type: (str, Symbol) -> None
         with self._records_lock:
-            print("Renamed: %s" % symbol.canonical_signature)
             self._records_for(project)[symbol.canonical_signature] = symbol.name
             self._dirty_projects.add(project)
 

@@ -6,7 +6,7 @@ from org.slf4j import Logger
 from client_base.connection import ConnectionABC
 from client_base.rename_listener import RenameListenerABC
 from java_common.wrappers import JavaConsumer
-from .utils import encode_symbol, project_id, get_base_methods
+from .utils import encode_symbol, project_id, get_internal_base_methods
 from .rename_engine import JADXRenameEngine
 
 
@@ -23,7 +23,7 @@ class JADXRenameListener(RenameListenerABC):
         if self._active:
             _node = rename.node
             if isinstance(_node, MethodNode):
-                nodes = get_base_methods(self._context, _node)
+                nodes = get_internal_base_methods(_node)
             else:
                 nodes = [_node]
 

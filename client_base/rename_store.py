@@ -56,6 +56,5 @@ def dump_renames(path, renames):
     with open(path, 'wb') as stream:
         write_struct(stream, "<I", len(renames))
         for canonical_signature, symbol_name in renames.items():
-            print(canonical_signature, symbol_name)
             write_string(stream, canonical_signature)
             write_string(stream, symbol_name)

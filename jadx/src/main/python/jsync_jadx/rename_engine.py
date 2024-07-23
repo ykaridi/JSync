@@ -8,7 +8,7 @@ from jadx.api.plugins import JadxPluginContext
 
 from common.symbol import Symbol
 from client_base.rename_engine import RenameEngineABC
-from .utils import project_id, get_node, get_name
+from .utils import project_id, get_node
 from .config import DATA_ROOT
 
 
