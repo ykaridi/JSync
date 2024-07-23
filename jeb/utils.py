@@ -17,14 +17,18 @@ def project_id(item):
     # type: (IDexMethod | IDexClass | IDexField | IDexType | IDexFile) -> str
     if isinstance(item, IDexFile):
         dex_file = item
-    elif isinstance(item, (IDexMethod, IDexField)):
-        dex_file_index = item.data.dexFileIndex
+    elif isinstance(item, (IDexMethod, IDexField, IDexClass)):
+        if isinstance(item, (IDexMethod, IDexField)):
+            dex_file_index = item.data.dexFileIndex
+        elif isinstance(item, IDexClass):
+            dex_file_index = item.dexFileIndex
+
         if dex_file_index < 0:
             raise ValueError("Invalid Dex File Index")
         dex_file = item.dex.getDexFile(dex_file_index)
     else:
         # TODO: Fix!
-        raise ValueError("Classes currently not supported")
+        raise ValueError(f"{type(item)} currently not supported")
 
     internal_id = id(dex_file)
     if internal_id not in CACHED_IDENTIFIERS:
