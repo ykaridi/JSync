@@ -1,9 +1,8 @@
 import os
-import json
-import atexit
 from abc import ABCMeta, abstractmethod
 from threading import Lock
 
+from .rename_store import load_renames, dump_renames
 from common.symbol import Symbol
 
 
@@ -14,10 +13,11 @@ class RenameEngineABC(object):
         # type: (str) -> None
         self._root = root
         self._rename_records = {}  # type: dict[str, dict[str, str]]
-        self._dirty_projects = {}  # type: dict[str, bool]
+        self._dirty_projects = set()  # type: set[str]
         self._records_lock = Lock()
 
-        atexit.register(self.dump_rename_records)
+        if not os.path.exists(self._root):
+            os.makedirs(self._root)
 
     @abstractmethod
     def get_name(self, project, symbol):
@@ -26,16 +26,15 @@ class RenameEngineABC(object):
 
     def _records_path(self, project):
         # type: (str) -> str
-        return os.path.join(self._root, "%s.json" % project)
+        return os.path.join(self._root, "%s" % project)
 
     def _records_for(self, project):
         # type: (str) -> dict[str, str]
         if project not in self._rename_records:
             path = self._records_path(project)
             if os.path.exists(path):
-                # TODO: Store rename records in better format, json is inefficient
-                with open(path, 'r') as f:
-                    self._rename_records[project] = json.load(f)
+                self._rename_records[project] = load_renames(path)
+                print(self._rename_records[project])
             else:
                 self._rename_records[project] = {}
 
@@ -52,18 +51,17 @@ class RenameEngineABC(object):
     def record_rename(self, project, symbol):
         # type: (str, Symbol) -> None
         with self._records_lock:
-            self._records_for(project)[symbol.canonical_signature] = symbol
-            self._dirty_projects[project] = True
+            print("Renamed: %s" % symbol.canonical_signature)
+            self._records_for(project)[symbol.canonical_signature] = symbol.name
+            self._dirty_projects.add(project)
 
     def dump_rename_records(self):
         with self._records_lock:
             for project in self._dirty_projects:
                 path = self._records_path(project)
-                # TODO: Store rename records in better format, json is inefficient
-                with open(path, 'w') as f:
-                    json.dump(self._rename_records[project], f)
+                dump_renames(path, self._records_for(project))
 
-            self._dirty_projects = None
+            self._dirty_projects = set()
 
     @abstractmethod
     def _enqueue_rename(self, project, symbol):

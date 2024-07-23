@@ -7,10 +7,10 @@ from client_base.rename_engine import RenameEngineABC
 from java_common.sync_to_server import JavaSyncToServer
 from common.symbol import SYMBOL_TYPE_CLASS, SYMBOL_TYPE_METHOD, SYMBOL_TYPE_FIELD
 
-from .utils import encode_symbol, project_id, get_base_methods
+from .utils import encode_symbol, project_id, get_base_methods, get_node_by_class_type_and_short_id
 
 
-QUICK = True
+QUICK = False
 
 NODE_REF_TYPE_TO_SYMBOL_TYPE = {
     IJavaNodeRef.RefType.CLASS: SYMBOL_TYPE_CLASS,
@@ -42,16 +42,11 @@ class JADXSyncToServer(JavaSyncToServer):
             if node_type is None:
                 continue
 
-            cls = self._context.decompiler.searchClassNodeByOrigFullName(ref.declaringClass)
-            short_id = ref.shortId
-
-            nodes = []
-            if node_type == SYMBOL_TYPE_CLASS:
-                nodes = [cls]
-            elif node_type == SYMBOL_TYPE_FIELD:
-                nodes = [cls.searchFieldByShortId(short_id)]
-            elif node_type == SYMBOL_TYPE_METHOD:
-                nodes = get_base_methods(cls.searchMethodByShortId(short_id))
+            node = get_node_by_class_type_and_short_id(self._context, ref.declaringClass, node_type, ref.shortId)
+            if node_type == SYMBOL_TYPE_METHOD:
+                nodes = get_base_methods(self._context, node)
+            else:
+                nodes = [node]
 
             for node in nodes:
                 project = project_id(node)

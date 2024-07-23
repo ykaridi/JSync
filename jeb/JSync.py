@@ -1,6 +1,6 @@
 # ?description=Activate JSync
 # ?shortcut=Mod1+J
-
+import atexit
 import functools
 import os
 import sys
@@ -31,6 +31,8 @@ class JSync(IScript):
         self.sync_to_server_thread = None  # type: Thread
         self._rename_engine = None  # type: JEBRenameEngine
 
+        atexit.register(self.clean)
+
     @staticmethod
     def clean_previous_executions(ctx):
         # type: (IClientContext) -> None
@@ -47,6 +49,9 @@ class JSync(IScript):
         if self.connection is not None:
             self.connection.close()
             self.connection = None
+        if self._rename_engine is not None:
+            self._rename_engine.dump_rename_records()
+            self._rename_engine = None
 
         for dex in ctx.mainProject.findUnits(IDexUnit):
             for listener in dex.listeners:

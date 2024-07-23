@@ -1,4 +1,5 @@
 import os
+import atexit
 
 from java.net import Socket
 from java.lang import Thread
@@ -37,6 +38,7 @@ class JSync(object):
         self._rename_engine = None
 
         INSTANCES.append(self)
+        atexit.register(self.clean)
 
     @property
     def active(self):
@@ -57,6 +59,9 @@ class JSync(object):
         if self._connection is not None:
             self._connection.close()
             self._connection = None
+        if self._rename_engine is not None:
+            self._rename_engine.dump_rename_records()
+            self._rename_engine = None
 
         self._logger.error("[JSync] Instance cleaned.")
 
@@ -75,7 +80,7 @@ class JSync(object):
         sock = Socket(host, port)
         self._connection = JADXConnection(self, self._logger, sock)
         self._connection.send_packet(name.encode('utf-8'))
-        self._rename_listener = JADXRenameListener(self._context, self._logger, self._connection)
+        self._rename_listener = JADXRenameListener(self._context, self._logger, self._connection, self._rename_engine)
         self._rename_listener.start()
 
         sync_to_server = Thread(JADXSyncToServer(self._context, self._logger, self._connection, self._rename_engine,

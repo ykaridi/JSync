@@ -15,7 +15,7 @@ class JEBRenameListener(IEventListener, RenameListenerABC):
     def __init__(self, jsync, context, connection, rename_engine):
         # type: ('JSync', IClientContext, ConnectionABC, JEBRenameEngine) -> None
         IEventListener.__init__(self)
-        RenameListenerABC.__init__(self, connection)
+        RenameListenerABC.__init__(self, connection, rename_engine)
 
         self._jsync = jsync
         self._is_jsync = True
@@ -34,12 +34,6 @@ class JEBRenameListener(IEventListener, RenameListenerABC):
 
                 project = project_id(target)
                 symbol = encode_symbol(target)
-
-                if self._rename_engine.locked:
-                    # TODO: Is this the right way to do it?
-                    #  We want to update metadata even in renames caused by root rename...
-                    self._rename_engine.record_rename(project, symbol)
-                    return
 
                 if isinstance(target, IDexMethod) and method_is_override(target):
                     return

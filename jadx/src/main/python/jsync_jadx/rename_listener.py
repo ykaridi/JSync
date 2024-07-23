@@ -7,12 +7,13 @@ from client_base.connection import ConnectionABC
 from client_base.rename_listener import RenameListenerABC
 from java_common.wrappers import JavaConsumer
 from .utils import encode_symbol, project_id, get_base_methods
+from .rename_engine import JADXRenameEngine
 
 
 class JADXRenameListener(RenameListenerABC):
-    def __init__(self, context, logger, connection):
-        # type: ('JSync', JadxPluginContext, Logger, ConnectionABC) -> None
-        super(JADXRenameListener, self).__init__(connection)
+    def __init__(self, context, logger, connection, rename_engine):
+        # type: ('JSync', JadxPluginContext, Logger, ConnectionABC, JADXRenameEngine) -> None
+        super(JADXRenameListener, self).__init__(connection, rename_engine)
         self._context = context
         self._logger = logger
         self._active = False
@@ -22,7 +23,7 @@ class JADXRenameListener(RenameListenerABC):
         if self._active:
             _node = rename.node
             if isinstance(_node, MethodNode):
-                nodes = get_base_methods(_node)
+                nodes = get_base_methods(self._context, _node)
             else:
                 nodes = [_node]
 
