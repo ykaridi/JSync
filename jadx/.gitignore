@@ -1,7 +1,7 @@
 # Artifacts
 build/
-gradle/
 .gradle/
+bin/
 *.class
 
 # IDEs

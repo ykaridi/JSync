@@ -20,7 +20,8 @@ jeb:
 
 jadx:
 	@echo "Building JADX plugin"
-	jadx/gradlew -p jadx
+	jadx/gradlew -p jadx build
+	cp jadx/build/libs/JSync.jar dist/JSync.jar
 
 server:
 	@echo "Packing Server"
