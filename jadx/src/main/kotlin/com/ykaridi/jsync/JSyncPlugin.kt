@@ -30,7 +30,7 @@ class JSyncPlugin : JadxPlugin {
             interpreter[PYTHON_LOGGER] = logger
             interpreter.exec(("""
             |import sys
-            |print("[JSync] Loading python code from %s" % $PYTHON_IMPORT_PATH)
+            |$PYTHON_LOGGER.error("[JSync] Loading python code from %s" % $PYTHON_IMPORT_PATH)
             |sys.path.append($PYTHON_IMPORT_PATH)
             |""" + (if (DEBUG) """
             |to_pop = []

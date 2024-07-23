@@ -31,7 +31,7 @@ def get_name(node):
 
 
 def encode_symbol(node):
-    # type: (ClassNode | MethodNode | FieldNode) -> Symbol
+    # type: (ClassNode | MethodNode | FieldNode | IJavaNodeRef) -> Symbol
     if isinstance(node, ClassNode):
         return Symbol(SYMBOL_TYPE_CLASS,
                       TypeGen.signature(node.classInfo.type),

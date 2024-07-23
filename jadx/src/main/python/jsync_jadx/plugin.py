@@ -1,5 +1,8 @@
+import os
+
 from java.net import Socket
 from java.lang import Thread
+from javax.swing import JOptionPane
 
 from jadx.api.plugins import JadxPluginContext
 from jadx.api import JadxDecompiler
@@ -11,8 +14,10 @@ from .rename_engine import JADXRenameEngine
 from .rename_listener import JADXRenameListener
 from .sync_to_server import JADXSyncToServer
 from .utils import project_id
+from .config import DATA_ROOT
 from java_common.update_listener import JavaUpdateListener
 from common.commands import FullSyncRequest, Subscribe
+from common.connection import query_server
 from jsync_cache import INSTANCES
 
 
@@ -59,10 +64,17 @@ class JSync(object):
         self._logger.error("[JSync] Activating...")
         self._rename_engine = JADXRenameEngine(self._context)
 
-        sock = Socket("localhost", 9501)
-        # TODO: Add support for custom user@host:port
+        config_path = os.path.join(DATA_ROOT, 'connection')
+        host, port, name = query_server(
+            lambda default: JOptionPane.showInputDialog(
+                "Connection Configuration: <name>@<host>:<port>", default
+            ),
+            config_path
+        )
+
+        sock = Socket(host, port)
         self._connection = JADXConnection(self, self._logger, sock)
-        self._connection.send_packet(b"user")
+        self._connection.send_packet(name.encode('utf-8'))
         self._rename_listener = JADXRenameListener(self._context, self._logger, self._connection)
         self._rename_listener.start()
 

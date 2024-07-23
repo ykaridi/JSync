@@ -3,7 +3,6 @@
 
 import functools
 import os
-import re
 import sys
 import traceback
 
@@ -21,6 +20,7 @@ from .sync_to_server import JEBSyncToServer
 from .utils import project_id
 from java_common.update_listener import JavaUpdateListener
 from common.commands import Subscribe, FullSyncRequest
+from common.connection import query_server
 
 
 class JSync(IScript):
@@ -59,28 +59,13 @@ class JSync(IScript):
         print("[jsync] Clearing previous listeners")
         self.clean_previous_executions(ctx)
 
-        config_path = DATA_ROOT / 'connection'
-        default_connection = "user@localhost:9501"
-        if os.path.exists(config_path):
-            with open(config_path, "r") as f:
-                default_connection = f.read()
-
-        while True:
-            connection_description = ctx.displayQuestionBox(
-                "Input", "Connection Configuration: <name>@<host>:<port>", default_connection
-            )
-            if connection_description == "":
-                return
-            m = re.match(r"(?P<name>.*)@(?P<host>.*)(:(?P<port>[0-9]*))", connection_description)
-            if m is not None:
-                break
-
-        with open(config_path, "w") as f:
-            f.write(connection_description)
-
-        name = m.group("name").encode("utf-8")
-        host = m.group("host").encode("utf-8")
-        port = int(m.group("port"))
+        config_path = os.path.join(DATA_ROOT, 'connection')
+        host, port, name = query_server(
+            lambda default: ctx.displayQuestionBox(
+                "Input", "Connection Configuration: <name>@<host>:<port>", default
+            ),
+            config_path
+        )
 
         # Create server connection socket
         self.connection = JEBConnection(self, Socket(host, port))
