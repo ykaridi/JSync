@@ -19,7 +19,6 @@ class JEBRenameEngine(RenameEngineABC):
         # type: (str, IClientContext) -> None
         super(self, JEBRenameEngine).__init__(DATA_ROOT / 'rename_records')
         self._lock = Lock()
-        self._connection_description = connection_description
         self._jeb_project = context.mainProject
         self._projects = None
 

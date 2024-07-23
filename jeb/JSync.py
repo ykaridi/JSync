@@ -78,7 +78,7 @@ class JSync(IScript):
         self.connection.send_packet(name)
         print("[jsync] Successfully connected to server")
 
-        self._rename_engine = JEBRenameEngine(connection_description, ctx)
+        self._rename_engine = JEBRenameEngine(ctx)
 
         rename_listener = JEBRenameListener(self, ctx, self.connection, self._rename_engine)
         rename_listener.start()
