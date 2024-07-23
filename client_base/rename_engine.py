@@ -33,6 +33,7 @@ class RenameEngineABC(object):
         if project not in self._rename_records:
             path = self._records_path(project)
             if os.path.exists(path):
+                # TODO: Store rename records in better format, json is inefficient
                 with open(path, 'r') as f:
                     self._rename_records[project] = json.load(f)
             else:
@@ -58,6 +59,7 @@ class RenameEngineABC(object):
         with self._records_lock:
             for project in self._dirty_projects:
                 path = self._records_path(project)
+                # TODO: Store rename records in better format, json is inefficient
                 with open(path, 'w') as f:
                     json.dump(self._rename_records[project], f)
 
