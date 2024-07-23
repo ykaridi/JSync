@@ -5,6 +5,7 @@ import jadx.api.plugins.JadxPluginContext
 import jadx.api.plugins.JadxPluginInfo
 import org.python.util.PythonInterpreter
 import org.slf4j.LoggerFactory
+import java.nio.file.Paths
 
 
 class JSyncPlugin : JadxPlugin {
@@ -23,13 +24,14 @@ class JSyncPlugin : JadxPlugin {
         guiContext?.addMenuAction("JSync") {
             val interpreter = PythonInterpreter()
             interpreter[PYTHON_JADX_CONTEXT] = context
-            interpreter[PYTHON_JAR_PATH] = uri
+            interpreter[PYTHON_IMPORT_PATH] = if (DEBUG) {
+                Paths.get(uri!!).toRealPath().parent.parent.parent.resolve("src/main/python").toString()
+            } else uri!! + "/python_code"
             interpreter[PYTHON_LOGGER] = logger
-            // TODO: Fix sys.path
             interpreter.exec(("""
             |import sys
-            |# sys.path.append($PYTHON_JAR_PATH + "/python_code")
-            |sys.path.append("/Users/ykaridi/Documents/JSync/jadx/src/main/python")
+            |print("[JSync] Loading python code from %s" % $PYTHON_IMPORT_PATH)
+            |sys.path.append($PYTHON_IMPORT_PATH)
             |""" + (if (DEBUG) """
             |to_pop = []
             |for name in sys.modules:
@@ -49,7 +51,7 @@ class JSyncPlugin : JadxPlugin {
         const val PLUGIN_ID: String = "JSync"
         const val PYTHON_JADX_CONTEXT: String = "context"
         const val PYTHON_LOGGER: String = "logger"
-        const val PYTHON_JAR_PATH: String = "jar_path"
+        const val PYTHON_IMPORT_PATH: String = "import_path"
         const val DEBUG: Boolean = true
     }
 }
