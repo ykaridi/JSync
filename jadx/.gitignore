@@ -1,0 +1,8 @@
+# Artifacts
+build/
+.gradle/
+bin/
+*.class
+
+# IDEs
+.idea

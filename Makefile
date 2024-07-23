@@ -1,21 +1,28 @@
 .PHONY: *
 
-all: init client server
+all: init jeb jadx server
 
 clean:
-	@echo "Cleaning dist/ folder"
+	@echo "Cleaning project"
 	rm -rf dist
+	find . -regex '^.*\(__pycache__\|\.py[co]\)$$' -delete
+	jadx/gradlew -p jadx clean
 
 init:
 	@echo "Creating dist/ folder"
 	mkdir -p dist
 
-client:
-	@echo "Packing JEBSync.py"
-	(awk '/^#/ {print} !/^#/ {exit}' < client/jebsync.py &&\
+jeb:
+	@echo "Packing JEB plugin"
+	(awk '/^#/ {print} !/^#/ {exit}' < jeb/JSync.py &&\
 	 echo && echo &&\
-	 python3 -m pybunch -d . -e client.jebsync -so) > dist/JEBSync.py
+	 pybunch -p common -p java_common -p client_base -p jeb -e jeb.JSync -so) > dist/JSync.py
+
+jadx:
+	@echo "Building JADX plugin"
+	jadx/gradlew -p jadx build
+	cp jadx/build/libs/JSync.jar dist/JSync.jar
 
 server:
-	@echo "Packing server.py"
-	python3 -m pybunch -d . -e server -so -o dist/server.py
+	@echo "Packing Server"
+	pybunch -p common -p server -e server -so -o dist/jsync-server.py
