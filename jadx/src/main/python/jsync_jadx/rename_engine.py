@@ -35,6 +35,7 @@ class JADXRenameEngine(RenameEngineABC):
             return False
 
         node.rename(symbol.name)
+
         with self.rename_future_lock:
             if self.rename_future is None:
                 self.rename_future = ApplyRename(self._context, self)

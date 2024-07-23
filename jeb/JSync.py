@@ -30,6 +30,7 @@ class JSync(IScript):
         self.update_listener_thread = None  # type: Thread
         self.sync_to_server_thread = None  # type: Thread
         self._rename_engine = None  # type: JEBRenameEngine
+        self._context = None  # type: IClientContext
 
         atexit.register(self.clean)
 
@@ -40,9 +41,9 @@ class JSync(IScript):
             for listener in list(dex.listeners):
                 jsync = getattr(listener, "_jsync", None)
                 if jsync is not None:
-                    jsync.clean(ctx)
+                    jsync.clean()
 
-    def clean(self, ctx):
+    def clean(self):
         if self.update_listener_thread is not None:
             self.update_listener_thread.interrupt()
             self.update_listener_thread = None
@@ -53,7 +54,10 @@ class JSync(IScript):
             self._rename_engine.dump_rename_records()
             self._rename_engine = None
 
-        for dex in ctx.mainProject.findUnits(IDexUnit):
+        if self._context is None:
+            return
+
+        for dex in self._context.mainProject.findUnits(IDexUnit):
             for listener in dex.listeners:
                 jsync = getattr(listener, "_jsync", None)
                 if jsync is self:
@@ -61,6 +65,7 @@ class JSync(IScript):
 
     def run(self, ctx):
         # type: (IClientContext) -> None
+        self._context = ctx
         print("[jsync] Clearing previous listeners")
         self.clean_previous_executions(ctx)
 

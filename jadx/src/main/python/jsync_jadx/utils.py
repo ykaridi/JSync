@@ -32,20 +32,21 @@ def get_name(node):
         raise ValueError("Unknown node type")
 
 
-def encode_symbol(node):
-    # type: (ClassNode | MethodNode | FieldNode) -> Symbol
+def encode_symbol(node, new_name=None):
+    # type: (ClassNode | MethodNode | FieldNode, str) -> Symbol
+    alias = new_name if new_name is not None else node.alias
     if isinstance(node, ClassNode):
         return Symbol(SYMBOL_TYPE_CLASS,
                       TypeGen.signature(node.classInfo.type),
-                      node.alias)
+                      alias)
     elif isinstance(node, MethodNode):
         return Symbol(SYMBOL_TYPE_METHOD,
                       TypeGen.signature(node.parentClass.classInfo.type) + "->" + node.methodInfo.shortId,
-                      node.alias)
+                      alias)
     elif isinstance(node, FieldNode):
         return Symbol(SYMBOL_TYPE_FIELD,
                       TypeGen.signature(node.parentClass.classInfo.type) + "->" + node.fieldInfo.shortId,
-                      node.alias)
+                      alias)
     else:
         raise ValueError("Unknown node type")
 

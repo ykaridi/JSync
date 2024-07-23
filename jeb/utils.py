@@ -28,7 +28,7 @@ def project_id(item):
         dex_file = item.dex.getDexFile(dex_file_index)
     else:
         # TODO: Fix!
-        raise ValueError(f"{type(item)} currently not supported")
+        raise ValueError("%s currently not supported" % type(item))
 
     internal_id = id(dex_file)
     if internal_id not in CACHED_IDENTIFIERS:

@@ -1,3 +1,4 @@
+import os
 from threading import Lock
 
 from com.pnfsoftware.jeb.core.units.code.android import IDexUnit
@@ -15,16 +16,16 @@ METADATA_GROUP_NAME = "jsync <%s>"
 
 
 class JEBRenameEngine(RenameEngineABC):
-    def __init__(self, connection_description, context):
-        # type: (str, IClientContext) -> None
-        super(self, JEBRenameEngine).__init__(DATA_ROOT / 'rename_records')
+    def __init__(self, context):
+        # type: (IClientContext) -> None
+        RenameEngineABC.__init__(self, os.path.join(DATA_ROOT, 'rename_records'))
         self._lock = Lock()
         self._jeb_project = context.mainProject
         self._projects = None
 
     def _get_dex_item(self, project, symbol):
         # type: (str, Symbol) -> IDexItem
-        dex_file = self._projects[project]
+        dex_file = self.projects[project]
         unit = dex_file.ownerUnit
 
         if symbol.symbol_type == SYMBOL_TYPE_FIELD:

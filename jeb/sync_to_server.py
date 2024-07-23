@@ -11,7 +11,7 @@ from java_common.sync_to_server import JavaSyncToServer
 from .utils import project_id, encode_symbol, method_is_override, is_internal
 
 
-QUICK = False
+QUICK = True
 
 
 class JEBSyncToServer(JavaSyncToServer):

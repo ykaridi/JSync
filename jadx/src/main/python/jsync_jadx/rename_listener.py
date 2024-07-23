@@ -28,7 +28,7 @@ class JADXRenameListener(RenameListenerABC):
                 nodes = [_node]
 
             for node in nodes:
-                self.on_rename(project_id(node), encode_symbol(node))
+                self.on_rename(project_id(node), encode_symbol(node, new_name=rename.newName))
 
     def start(self):
         self._active = True
