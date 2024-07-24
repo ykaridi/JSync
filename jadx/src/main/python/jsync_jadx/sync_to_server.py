@@ -10,8 +10,6 @@ from common.symbol import SYMBOL_TYPE_CLASS, SYMBOL_TYPE_METHOD, SYMBOL_TYPE_FIE
 from .utils import encode_symbol, project_id, get_internal_base_methods, get_node_by_class_type_and_short_id
 
 
-QUICK = False
-
 NODE_REF_TYPE_TO_SYMBOL_TYPE = {
     IJavaNodeRef.RefType.CLASS: SYMBOL_TYPE_CLASS,
     IJavaNodeRef.RefType.METHOD: SYMBOL_TYPE_METHOD,
@@ -52,7 +50,7 @@ class JADXSyncToServer(JavaSyncToServer):
                 project = project_id(node)
                 symbol = encode_symbol(node)
 
-                if QUICK or not self._rename_engine.is_symbol_synced(project, symbol):
+                if not self._rename_engine.is_symbol_synced(project, symbol):
                     symbols.setdefault(project, []).append(symbol)
 
         for project, project_symbols in symbols.items():
