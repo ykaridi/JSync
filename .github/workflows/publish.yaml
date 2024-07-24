@@ -41,7 +41,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4.3.2
         with:
-          name: JSync - ${{ matrix.target.name }}
+          name: JSync.${{ matrix.target.name }}
           path: dist/
 
   github-release:
@@ -58,17 +58,17 @@ jobs:
     - name: Download JSync Server
       uses: actions/download-artifact@v3
       with:
-        name: JSync - server
+        name: JSync.server
         path: dist/
     - name: Download JSync JEB
       uses: actions/download-artifact@v3
       with:
-        name: JSync - jeb
+        name: JSync.jeb
         path: dist/
     - name: Download JSync JADX
       uses: actions/download-artifact@v3
       with:
-        name: JSync - jadx
+        name: JSync.jadx
         path: dist/
     - name: Create GitHub Release
       env:
