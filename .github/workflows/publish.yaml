@@ -13,9 +13,9 @@ jobs:
     strategy:
       matrix:
         target:
-          - { name: server, type: pybunch }
-          - { name: jeb, type: pybunch }
-          - { name: jadx, type: java }
+          - { name: Server, type: pybunch }
+          - { name: JEB, type: pybunch }
+          - { name: JADX, type: java }
 
     steps:
       - uses: actions/checkout@v4
