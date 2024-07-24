@@ -1,0 +1,80 @@
+name: Build and publish
+
+on:
+  push:
+    tags:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Building base
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - { name: server, type: pybunch }
+          - { name: jeb, type: pybunch }
+          - { name: jadx, type: java }
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize build process
+        run: make init
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+        if: matrix.target.type == 'pybunch'
+      - name: Install pybunch
+        run: >-
+          python3 -m
+          pip install
+          pybunch
+          --user
+        if: matrix.target.type == 'pybunch'
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+        if: matrix.target.type == 'java'
+      - name: Make ${{ matrix.target.name }}
+        run: make ${{ matrix.target.name }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target.name }}
+          path: dist/
+
+  github-release:
+    name: >-
+      Publish the distribution 📦 as GitHub Release
+    needs:
+    - build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # IMPORTANT: mandatory for making GitHub Releases
+
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: dist_/
+    - name: Merge artifacts
+      run: mkdir dist && mv dist_/*/* dist/
+    - name: Create GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: >-
+        gh release create
+        '${{ github.ref_name }}'
+        --repo '${{ github.repository }}'
+        --notes ""
+    - name: Upload artifacts to GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      # Upload to GitHub Release using the `gh` CLI.
+      # `dist/` contains the built packages
+      run: >-
+        gh release upload
+        '${{ github.ref_name }}' dist/**
+        --repo '${{ github.repository }}'
