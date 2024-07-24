@@ -39,13 +39,13 @@ class RenameEngineABC(object):
 
         return self._rename_records[project]
 
+    def get_symbol_latest_name(self, project, symbol):
+        # type: (str, Symbol) -> str
+        return self._records_for(project).get(symbol.canonical_signature, None)
+
     def is_symbol_synced(self, project, symbol):
         # type: (str, Symbol) -> bool
-        saved_name = self._records_for(project).get(symbol.canonical_signature, None)
-        if saved_name is None:
-            return False
-
-        return saved_name == symbol.name
+        return self.get_symbol_latest_name(project, symbol) == symbol.name
 
     def record_rename(self, project, symbol):
         # type: (str, Symbol) -> None
@@ -54,6 +54,7 @@ class RenameEngineABC(object):
             self._dirty_projects.add(project)
 
     def dump_rename_records(self):
+        # type: () -> None
         with self._records_lock:
             for project in self._dirty_projects:
                 path = self._records_path(project)
@@ -67,6 +68,8 @@ class RenameEngineABC(object):
         raise NotImplemented
 
     def enqueue_rename(self, project, symbol):
-        symbol = symbol.clone(name=symbol.name.replace('.', '$'))
-        if self._enqueue_rename(project, symbol):
-            self.record_rename(project, symbol)
+        # type: (str, Symbol) -> None
+        old_name = self.get_symbol_latest_name(project, symbol)
+        self.record_rename(project, symbol)
+        if not self._enqueue_rename(project, symbol):
+            self.record_rename(project, symbol.clone(name=old_name))
