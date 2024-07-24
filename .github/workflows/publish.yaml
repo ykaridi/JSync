@@ -1,0 +1,136 @@
+name: Pack client and server, publish as GitHub Release
+
+on:
+  push:
+    tags:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Building base
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize build process
+        run: make init
+
+  build-python:
+    name: Python Building Base
+    runs-on: ubuntu-latest
+    needs:
+      - build
+
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
+    - name: Install pybunch
+      run: >-
+        python3 -m
+        pip install
+        pybunch
+        --user
+
+  build-server:
+   name: Build server
+   runs-on: ubuntu-latest
+   needs:
+     - build-python
+
+   steps:
+    - name: Build server
+      run: make server
+    - name: Store the distribution packages
+      uses: actions/upload-artifact@v3
+      with:
+        name: JSync Server
+        path: dist/
+
+  build-jeb:
+    name: Build JEB
+    runs-on: ubuntu-latest
+    needs:
+      - build-python
+
+    steps:
+      - name: Build JEB
+        run: make jeb
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v3
+        with:
+          name: JSync JEB
+          path: dist/
+
+  build-java:
+    name: Java Building Base
+    runs-on: ubuntu-latest
+    needs:
+      - build
+
+    steps:
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+
+  build-jadx:
+    name: Build JADX
+    runs-on: ubuntu-latest
+    needs:
+      - build-java
+
+    steps:
+      - name: Build JADX
+        run: make jadx
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v3
+        with:
+          name: JSync JADX
+          path: dist/
+
+  github-release:
+    name: >-
+      Publish the distribution 📦 as GitHub Release
+    needs:
+    - build-server
+    - build-jeb
+    - build-jadx
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # IMPORTANT: mandatory for making GitHub Releases
+
+    steps:
+    - name: Download JSync Server
+      uses: actions/download-artifact@v3
+      with:
+        name: JSync Server
+        path: dist/
+    - name: Download JSync JEB
+      uses: actions/download-artifact@v3
+      with:
+        name: JSync JEB
+        path: dist/
+    - name: Download JSync JADX
+      uses: actions/download-artifact@v3
+      with:
+        name: JSync JADX
+        path: dist/
+    - name: Create GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: >-
+        gh release create
+        '${{ github.ref_name }}'
+        --repo '${{ github.repository }}'
+        --notes ""
+    - name: Upload artifacts to GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      # Upload to GitHub Release using the `gh` CLI.
+      # `dist/` contains the built packages
+      run: >-
+        gh release upload
+        '${{ github.ref_name }}' dist/**
+        --repo '${{ github.repository }}'
