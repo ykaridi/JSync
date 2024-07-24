@@ -1,8 +1,7 @@
 import struct
 
 import jarray
-from java.io import DataInputStream, BufferedOutputStream
-from java.net import Socket
+from java.io import DataInputStream, BufferedOutputStream, Socket
 from org.python.core.util import StringUtil
 from java.net import SocketException
 

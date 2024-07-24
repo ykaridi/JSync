@@ -28,7 +28,7 @@ class SqliteSymbolStore(SymbolStore):
     def _symbol_to_row(symbol: Symbol) -> List[str | int]:
         return [symbol.author, symbol.symbol_type, symbol.canonical_signature, symbol.name, symbol.timestamp]
 
-    def push_symbols(self, symbols: Iterable[Symbol], only_changed: bool = True) -> None:
+    def push_symbols(self, symbols: Iterable[Symbol], only_changed: bool = True):
         symbols = iter(self.changed_symbols(symbols) if only_changed else symbols)
         with closing(self._conn.cursor()) as cur:
             while batch := [self._symbol_to_row(row) for row in itertools.islice(symbols, MAXIMAL_TRANSACTION_SIZE)]:

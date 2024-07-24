@@ -44,6 +44,7 @@ class JSync(IScript):
                     jsync.clean()
 
     def clean(self):
+        # type: () -> None
         if self.update_listener_thread is not None:
             self.update_listener_thread.interrupt()
             self.update_listener_thread = None

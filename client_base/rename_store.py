@@ -41,6 +41,7 @@ def write_string(stream, s):
 
 
 def load_renames(path):
+    # type: (str) -> dict[str, str]
     with open(path, 'rb') as stream:
         num_renames = read_struct(stream, '<I')[0]
         renames = {}
@@ -53,6 +54,7 @@ def load_renames(path):
 
 
 def dump_renames(path, renames):
+    # type: (str, dict[str, str]) -> None
     with open(path, 'wb') as stream:
         write_struct(stream, "<I", len(renames))
         for canonical_signature, symbol_name in renames.items():

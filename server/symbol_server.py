@@ -35,7 +35,7 @@ class SymbolServer(ABC):
 
     @abstractmethod
     def _get_store(self, project: str) -> SymbolStore:
-        raise NotImplemented
+        raise NotImplementedError
 
     @staticmethod
     async def push_to_client(client: Client, payload: bytes):

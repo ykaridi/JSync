@@ -13,6 +13,7 @@ class Dataclass(object):
         return self.description(descriptor=repr)
 
     def clone(self, **kwargs):
+        # type: (**object) -> Dataclass
         v = vars(self)
         v.update(kwargs)
         cls = type(self)

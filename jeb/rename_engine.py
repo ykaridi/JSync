@@ -2,7 +2,7 @@ import os
 from threading import Lock
 
 from com.pnfsoftware.jeb.core.units.code.android import IDexUnit
-from com.pnfsoftware.jeb.core.units.code.android.dex import IDexItem, IDexField, IDexMethod, IDexClass
+from com.pnfsoftware.jeb.core.units.code.android.dex import IDexItem
 from com.pnfsoftware.jeb.client.api import IClientContext
 
 from common.symbol import SYMBOL_TYPE_FIELD, SYMBOL_TYPE_METHOD, SYMBOL_TYPE_CLASS

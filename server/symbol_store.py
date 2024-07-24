@@ -5,7 +5,7 @@ from common.symbol import Symbol
 
 
 class SymbolStore(ABC):
-    def push_symbol(self, symbol: Symbol) -> None:
+    def push_symbol(self, symbol: Symbol):
         return self.push_symbols([symbol])
 
     def changed_symbols(self, symbols: Iterable[Symbol]) -> Iterable[Symbol]:
@@ -20,16 +20,16 @@ class SymbolStore(ABC):
                 if symbol.name != existing_symbol.name:
                     yield symbol
 
-    def push_symbols(self, symbols: Iterable[Symbol], only_changed: bool = True) -> None:
-        raise NotImplemented
+    def push_symbols(self, symbols: Iterable[Symbol], only_changed: bool = True):
+        raise NotImplementedError
 
     @abstractmethod
     def get_symbols(self, canonical_signature: Optional[str] = None, author: Optional[str] = None) -> Iterable[Symbol]:
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_latest_symbols(self, canonical_signature: Optional[str] = None) -> Iterable[Symbol]:
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
-    def close(self) -> None:
-        raise NotImplemented
+    def close(self):
+        raise NotImplementedError

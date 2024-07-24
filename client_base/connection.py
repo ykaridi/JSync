@@ -7,16 +7,17 @@ class ConnectionABC(object):
     @abstractmethod
     def send_packet(self, data):
         # type: (bytes) -> None
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def recv_packet(self):
         # type: () -> bytes
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def close(self):
-        raise NotImplemented
+        # type: () -> None
+        raise NotImplementedError
 
 
 class ConnectionError(Exception):

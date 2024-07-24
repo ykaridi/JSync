@@ -23,6 +23,7 @@ from jsync_cache import INSTANCES
 
 
 def clean_previous_executions():
+    # type: () -> None
     for instance in INSTANCES:
         instance.clean()
 
@@ -46,6 +47,7 @@ class JSync(object):
         return self._active
 
     def clean(self):
+        # type: () -> None
         self._logger.error("[JSync] Cleaning instance...")
         if self in INSTANCES:
             INSTANCES.remove(self)
@@ -66,6 +68,7 @@ class JSync(object):
         self._logger.error("[JSync] Instance cleaned.")
 
     def start(self):
+        # type: () -> None
         self._logger.error("[JSync] Activating...")
         self._rename_engine = JADXRenameEngine(self._context)
 
@@ -88,6 +91,7 @@ class JSync(object):
         sync_to_server.start()
 
     def after_sync(self):
+        # type: () -> None
         loaded_inputs_field = JadxDecompiler.getDeclaredField('loadedInputs')
         loaded_inputs_field.setAccessible(True)
 

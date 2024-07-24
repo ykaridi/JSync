@@ -55,6 +55,7 @@ class ApplyRename(Runnable):
         self.nodes = []
 
     def run(self):
+        # type: () -> None
         with self._rename_engine.rename_future_lock:
             self._rename_engine.rename_future = None
 

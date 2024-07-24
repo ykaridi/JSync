@@ -41,5 +41,6 @@ class JEBRenameListener(IEventListener, RenameListenerABC):
                 self.on_rename(project, symbol)
 
     def start(self):
+        # type: () -> None
         for dex in self._jeb_project.findUnits(IDexUnit):
             dex.addListener(self)

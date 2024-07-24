@@ -3,7 +3,7 @@ import re
 
 
 def query_server(query_function, configuration_file):
-    # type: (callable, str) -> (str, int, str)
+    # type: (callable, str) -> tuple[str, int, str]
     default_connection = "user@localhost:9501"
     if os.path.exists(configuration_file):
         with open(configuration_file, "r") as f:

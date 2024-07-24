@@ -28,4 +28,4 @@ class RenameListenerABC(object):
 
     @abstractmethod
     def start(self):
-        raise NotImplemented
+        raise NotImplementedError

@@ -22,7 +22,7 @@ class RenameEngineABC(object):
     @abstractmethod
     def get_name(self, project, symbol):
         # type: (str, Symbol) -> str
-        raise NotImplemented
+        raise NotImplementedError
 
     def _records_path(self, project):
         # type: (str) -> str
@@ -65,7 +65,7 @@ class RenameEngineABC(object):
     @abstractmethod
     def _enqueue_rename(self, project, symbol):
         # type: (str, Symbol) -> bool
-        raise NotImplemented
+        raise NotImplementedError
 
     def enqueue_rename(self, project, symbol):
         # type: (str, Symbol) -> None

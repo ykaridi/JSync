@@ -24,4 +24,4 @@ class SyncToServerABC(object):
     @abstractmethod
     def run(self):
         # type: () -> None
-        raise NotImplemented
+        raise NotImplementedError

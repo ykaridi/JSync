@@ -32,6 +32,7 @@ class _CommandEncoder(json.JSONEncoder):
 
 class _CommandDecoder(json.JSONDecoder):
     def __init__(self):
+        # type: () -> None
         super(_CommandDecoder, self).__init__(object_hook=self.object_hook)
         self._types = {k: v for k, v in globals().items() if isinstance(v, type) and issubclass(v, Dataclass)}
 

@@ -1,11 +1,12 @@
-venv/
+# Testing
+symbols/
 
 # Local Artifacts
 dist/
 *.egg-info/
 *.class
-symbols/
-typings/
+typings/*
+!typings/generate_stubs.py
 
 # Caches
 __pycache__/
@@ -15,3 +16,4 @@ __pycache__/
 .idea/
 .vscode/
 .DS_Store
+venv/
