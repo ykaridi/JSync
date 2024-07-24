@@ -1,4 +1,4 @@
-name: Pack client and server, publish as GitHub Release
+name: Build and publish
 
 on:
   push:
@@ -10,83 +10,38 @@ jobs:
   build:
     name: Building base
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - { name: server, type: pybunch }
+          - { name: jeb, type: pybunch }
+          - { name: jadx, type: java }
 
     steps:
       - uses: actions/checkout@v4
       - name: Initialize build process
         run: make init
-
-  build-python:
-    name: Python Building Base
-    runs-on: ubuntu-latest
-    needs:
-      - build
-
-    steps:
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.x"
-    - name: Install pybunch
-      run: >-
-        python3 -m
-        pip install
-        pybunch
-        --user
-
-  build-server:
-   name: Build server
-   runs-on: ubuntu-latest
-   needs:
-     - build-python
-
-   steps:
-    - name: Build server
-      run: make server
-    - name: Store the distribution packages
-      uses: actions/upload-artifact@v3
-      with:
-        name: JSync Server
-        path: dist/
-
-  build-jeb:
-    name: Build JEB
-    runs-on: ubuntu-latest
-    needs:
-      - build-python
-
-    steps:
-      - name: Build JEB
-        run: make jeb
-      - name: Store the distribution packages
-        uses: actions/upload-artifact@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          name: JSync JEB
-          path: dist/
-
-  build-java:
-    name: Java Building Base
-    runs-on: ubuntu-latest
-    needs:
-      - build
-
-    steps:
+          python-version: "3.x"
+        if: matrix.target.type == 'pybunch'
+      - name: Install pybunch
+        run: >-
+          python3 -m
+          pip install
+          pybunch
+          --user
+        if: matrix.target.type == 'pybunch'
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v3
-
-  build-jadx:
-    name: Build JADX
-    runs-on: ubuntu-latest
-    needs:
-      - build-java
-
-    steps:
-      - name: Build JADX
-        run: make jadx
-      - name: Store the distribution packages
-        uses: actions/upload-artifact@v3
+        if: matrix.target.type == 'java'
+      - name: Make ${{ matrix.target.name }}
+        run: make ${{ matrix.target.name }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4.3.2
         with:
-          name: JSync JADX
+          name: JSync - ${{ matrix.target.name }}
           path: dist/
 
   github-release:
@@ -105,17 +60,17 @@ jobs:
     - name: Download JSync Server
       uses: actions/download-artifact@v3
       with:
-        name: JSync Server
+        name: JSync - Server
         path: dist/
     - name: Download JSync JEB
       uses: actions/download-artifact@v3
       with:
-        name: JSync JEB
+        name: JSync - JEB
         path: dist/
     - name: Download JSync JADX
       uses: actions/download-artifact@v3
       with:
-        name: JSync JADX
+        name: JSync - JADX
         path: dist/
     - name: Create GitHub Release
       env:
