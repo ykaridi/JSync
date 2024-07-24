@@ -6,3 +6,6 @@ bin/
 
 # IDEs
 .idea
+
+# Debug Mode
+DEBUG_ME

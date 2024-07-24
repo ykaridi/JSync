@@ -6,11 +6,12 @@ import jadx.api.plugins.JadxPluginInfo
 import org.python.util.PythonInterpreter
 import org.slf4j.LoggerFactory
 import java.nio.file.Paths
+import kotlin.io.path.exists
 
 
 class JSyncPlugin : JadxPlugin {
     private val logger = LoggerFactory.getLogger(JSyncPlugin::class.java)
-    private val uri = Util.getJarLocation(JSyncPlugin::class.java)
+    private val uri = Util.getJarLocation(JSyncPlugin::class.java)!!
 
     override fun getPluginInfo(): JadxPluginInfo {
         logger.info("[JSync] loading from <$uri>")
@@ -24,15 +25,19 @@ class JSyncPlugin : JadxPlugin {
         guiContext?.addMenuAction("JSync") {
             val interpreter = PythonInterpreter()
             interpreter[PYTHON_JADX_CONTEXT] = context
-            interpreter[PYTHON_IMPORT_PATH] = if (DEBUG) {
-                Paths.get(uri!!).toRealPath().parent.parent.parent.resolve("src/main/python").toString()
-            } else uri!! + "/python_code"
+
+            val sourcesLocation = Paths.get(uri).toRealPath().parent.parent.parent
+            val debug = sourcesLocation.resolve("DEBUG_ME").exists()
+
+            interpreter[PYTHON_IMPORT_PATH] = if (debug) {
+                sourcesLocation.resolve("src/main/python").toString()
+            } else "$uri/python_code"
             interpreter[PYTHON_LOGGER] = logger
             interpreter.exec(("""
             |import sys
             |$PYTHON_LOGGER.error("[JSync] Loading python code from %s" % $PYTHON_IMPORT_PATH)
             |sys.path.append($PYTHON_IMPORT_PATH)
-            |""" + (if (DEBUG) """
+            |""" + (if (debug) """
             |to_pop = []
             |for name in sys.modules:
             |   if any(x in name for x in ['java_common', 'client_base', 'common', 'jsync_jadx']):
@@ -52,6 +57,5 @@ class JSyncPlugin : JadxPlugin {
         const val PYTHON_JADX_CONTEXT: String = "context"
         const val PYTHON_LOGGER: String = "logger"
         const val PYTHON_IMPORT_PATH: String = "import_path"
-        const val DEBUG: Boolean = true
     }
 }
