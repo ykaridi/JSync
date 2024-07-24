@@ -3,6 +3,9 @@ venv/
 # Local Artifacts
 dist/
 *.egg-info/
+*.class
+symbols/
+typings/
 
 # Caches
 __pycache__/
