@@ -35,14 +35,11 @@ class JEBSyncToServer(JavaSyncToServer):
                     if not item.renamed:
                         continue
 
-                    project = project_id(item)
-                    symbol = encode_symbol(item)
-                else:
-                    project = project_id(item)
-                    symbol = encode_symbol(item)
+                project = project_id(item)
+                symbol = encode_symbol(item)
 
-                    if self._rename_engine.is_symbol_synced(project, symbol):
-                        continue
+                if self._rename_engine.is_symbol_synced(project, symbol):
+                    continue
 
                 if isinstance(item, IDexMethod) and method_is_override(item):
                     continue
