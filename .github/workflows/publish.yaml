@@ -48,9 +48,7 @@ jobs:
     name: >-
       Publish the distribution 📦 as GitHub Release
     needs:
-    - build-server
-    - build-jeb
-    - build-jadx
+    - build
     runs-on: ubuntu-latest
 
     permissions:
