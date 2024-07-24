@@ -13,9 +13,9 @@ jobs:
     strategy:
       matrix:
         target:
-          - { name: Server, type: pybunch }
-          - { name: JEB, type: pybunch }
-          - { name: JADX, type: java }
+          - { name: server, type: pybunch }
+          - { name: jeb, type: pybunch }
+          - { name: jadx, type: java }
 
     steps:
       - uses: actions/checkout@v4
@@ -58,17 +58,17 @@ jobs:
     - name: Download JSync Server
       uses: actions/download-artifact@v3
       with:
-        name: JSync - Server
+        name: JSync - server
         path: dist/
     - name: Download JSync JEB
       uses: actions/download-artifact@v3
       with:
-        name: JSync - JEB
+        name: JSync - jeb
         path: dist/
     - name: Download JSync JADX
       uses: actions/download-artifact@v3
       with:
-        name: JSync - JADX
+        name: JSync - jadx
         path: dist/
     - name: Create GitHub Release
       env:
