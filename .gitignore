@@ -18,3 +18,7 @@ __pycache__/
 .vscode/
 .DS_Store
 venv/
+
+# Bazel
+*.bazel.lock
+bazel-*
