@@ -91,7 +91,7 @@ class JSync(IScript):
         # type: (IClientContext) -> None
         SqliteAdapter.ensure_jars(self.connection)
 
-        self._rename_engine = JEBRenameEngine(ctx)
+        self._rename_engine = JEBRenameEngine(ctx, self.connection.name)
 
         rename_listener = JEBRenameListener(self, ctx, self.connection, self._rename_engine, self.connection.name)
         rename_listener.start()

@@ -16,9 +16,9 @@ METADATA_GROUP_NAME = "jsync <%s>"
 
 
 class JEBRenameEngine(JavaRenameEngineABC):
-    def __init__(self, context):
-        # type: (IClientContext) -> None
-        JavaRenameEngineABC.__init__(self, os.path.join(JSYNC_JEB_ROOT, 'rename_records'))
+    def __init__(self, context, self_author):
+        # type: (IClientContext, str) -> None
+        JavaRenameEngineABC.__init__(self, self_author, os.path.join(JSYNC_JEB_ROOT, 'rename_records'))
         self._lock = Lock()
         self._jeb_project = context.mainProject
         self._projects = None

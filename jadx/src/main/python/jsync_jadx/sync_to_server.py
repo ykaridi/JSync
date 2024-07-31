@@ -52,7 +52,7 @@ class JADXSyncToServer(JavaSyncToServer):
                 project = project_id(node)
                 symbol = encode_symbol(node)
 
-                if not self._rename_engine.is_symbol_synced(project, symbol):
+                if not self._rename_engine.is_symbol_synced(project, symbol, True):
                     symbols.setdefault(project, []).append(symbol)
 
         for project, project_symbols in symbols.items():

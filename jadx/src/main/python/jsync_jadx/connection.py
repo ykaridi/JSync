@@ -7,7 +7,7 @@ from java_common.connection import JavaConnection
 class JADXConnection(JavaConnection):
     def __init__(self, jsync, logger, host, port, name):
         # type: ('JSync', Logger, str, int, str) -> None
-        super(JADXConnection, self).__init__(self, host, port, name)
+        JavaConnection.__init__(self, host, port, name)
         self._jsync = jsync
         self._logger = logger
 

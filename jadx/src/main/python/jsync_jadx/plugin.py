@@ -89,7 +89,7 @@ class JSync(object):
     def initialize(self):
         SqliteAdapter.ensure_jars(self._connection)
 
-        self._rename_engine = JADXRenameEngine(self._context)
+        self._rename_engine = JADXRenameEngine(self._context, self._connection.name)
         self._rename_listener = JADXRenameListener(self._context, self._logger, self._connection, self._rename_engine,
                                                    self._connection.name)
         self._rename_listener.start()

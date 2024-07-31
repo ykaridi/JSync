@@ -18,13 +18,13 @@ class RenameListenerABC(object):
 
     def on_rename(self, project, symbol):
         # type: (str, Symbol) -> None
-        if self._rename_engine.is_symbol_synced(project, symbol):
+        if self._rename_engine.is_symbol_synced(project, symbol, True):
             return
 
         symbol = symbol.clone(timestamp=int(time.time()))
 
         self._rename_engine.record_rename(project, symbol)
-        self._rename_engine.record_symbols(project, [symbol.clone(author=self._name)], dirty=False)
+        self._rename_engine.record_symbols(project, [symbol.clone(author=self._name)])
         self._rename_engine.flush_symbols()
 
         command = UpstreamSymbols(project, [symbol], loggable=True)

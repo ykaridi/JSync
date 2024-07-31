@@ -13,9 +13,9 @@ from .config import JSYNC_JADX_ROOT
 
 
 class JADXRenameEngine(JavaRenameEngineABC):
-    def __init__(self, context):
-        # type: (JadxPluginContext) -> None
-        super(JADXRenameEngine, self).__init__(os.path.join(JSYNC_JADX_ROOT, 'rename_records'))
+    def __init__(self, context, self_author):
+        # type: (JadxPluginContext, str) -> None
+        super(JADXRenameEngine, self).__init__(self_author, os.path.join(JSYNC_JADX_ROOT, 'rename_records'))
         self._context = context
         self.rename_future = None  # type: Thread
         self.rename_future_lock = Lock()

@@ -1,20 +1,42 @@
+import os
 from abc import ABCMeta, abstractmethod
 from threading import Lock
 
+from client_base.config import JSYNC_ROOT
 from common.symbol import Symbol
 from common.lazy_dict import LazyDict
 from client_base.client_symbol_store import ClientSymbolStoreABC
 
 
+def evaluate_symbol(symbols, self_author):
+    return max(symbols, key=lambda s: s.timestamp)
+
+
+def get_symbol_evaluator():
+    # type: () -> evaluate_symbol
+    symbol_evaluator_file = os.path.join(JSYNC_ROOT, 'symbol_evaluator.py')
+    if os.path.exists(symbol_evaluator_file):
+        dct = {}
+        with open(symbol_evaluator_file, 'r') as f:
+            exec(f.read(), dct, dct)
+
+        return dct['evaluate_symbol']
+    else:
+        return evaluate_symbol
+
+
 class RenameEngineABC(object):
     __metaclass__ = ABCMeta
 
-    def __init__(self):
-        # type: () -> None
+    def __init__(self, self_author):
+        # type: (str) -> None
+        self._self_author = self_author
         self._symbol_stores = LazyDict(lambda project:
                                        self.get_client_symbol_store(project))  # type: dict[str, ClientSymbolStoreABC]
         self._dirty_symbols = {}  # type: dict[str, set[Symbol]]
         self._records_lock = Lock()
+
+        self._symbol_evaluator = get_symbol_evaluator()  # type: evaluate_symbol
 
     @abstractmethod
     def get_client_symbol_store(self, project):
@@ -72,12 +94,16 @@ class RenameEngineABC(object):
         if len(symbols) == 0:
             return symbol.stripped.clone(name=self.get_original_name(project, symbol))
 
-        # TODO: Add plugin execution, allowing even to modify symbol
-        return max(symbols, key=lambda s: s.timestamp)
+        return self._symbol_evaluator(symbols, self._self_author)
 
     def flush_symbol(self, project, symbol):
         # type: (str, Symbol) -> None
-        symbol = self.evaluate_symbol(project, symbol.stripped)
+        print(symbol)
+        _symbol = self.evaluate_symbol(project, symbol.stripped)
+        if symbol.canonical_signature != _symbol.canonical_signature:
+            raise EnvironmentError("Symbol Evaluator is inconsistent - changes canonical signature!")
+
+        symbol = _symbol
 
         old_name = self.get_symbol_latest_rename(project, symbol)
         self.record_rename(project, symbol)
