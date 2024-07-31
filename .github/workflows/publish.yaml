@@ -8,12 +8,12 @@ on:
 
 jobs:
   build:
-    name: Building base
+    name: Build
     runs-on: ubuntu-latest
     strategy:
       matrix:
         target:
-          - { name: server, type: pybunch }
+          - { name: server, type: zip }
           - { name: jeb, type: pybunch }
           - { name: jadx, type: java }
 
