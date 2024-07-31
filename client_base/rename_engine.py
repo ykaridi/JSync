@@ -35,9 +35,10 @@ class RenameEngineABC(object):
         # type: (str, Symbol) -> str
         return self._symbol_stores[project].get_latest_rename(symbol.canonical_signature)
 
-    def is_symbol_synced(self, project, symbol):
-        # type: (str, Symbol) -> bool
-        return self.get_symbol_latest_rename(project, symbol) == symbol.name
+    def is_symbol_synced(self, project, symbol, is_renamed):
+        # type: (str, Symbol, bool) -> bool
+        latest_rename = self.get_symbol_latest_rename(project, symbol)
+        return ((not is_renamed) and latest_rename is None) or (is_renamed and latest_rename == symbol.name)
 
     def record_rename(self, project, symbol):
         # type: (str, Symbol) -> None

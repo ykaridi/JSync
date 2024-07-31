@@ -1,16 +1,19 @@
 import asyncio
+import base64
 import logging
 import socket
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import List, Dict, Set
+from pathlib import Path
 
 from .utils import recv_packet, send_packet
 from common.lazy_dict import LazyDict
 from common.symbol import Symbol
 from common.symbol_store import SymbolStoreABC
-from common.commands import Command, Subscribe, Unsubscribe, UpstreamSymbols, DownstreamSymbols, FullSyncRequest
+from common.commands import (Command, Subscribe, Unsubscribe, UpstreamSymbols, DownstreamSymbols, FullSyncRequest,
+                             ResourceRequest, ResourceResponse)
 
 
 logging.basicConfig(level=logging.DEBUG, format='%(message)s')
@@ -36,6 +39,10 @@ class SymbolServer(ABC):
 
     @abstractmethod
     def _get_store(self, project: str) -> SymbolStoreABC:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_resource(self, name: str) -> bytes:
         raise NotImplementedError
 
     @staticmethod
@@ -102,6 +109,16 @@ class SymbolServer(ABC):
                     store = self._stores[command.project]
                     symbols = list(store.get_symbols())
                     await self.push_symbols(client, command.project, symbols)
+                elif isinstance(command, ResourceRequest):
+                    resource = command.name
+                    content = self._get_resource(resource)
+                    if content is None:
+                        logging.info(f"[Resource] Request from {name} for non-existent resource <{command.name}>")
+                        response = ResourceResponse(resource, None)
+                    else:
+                        logging.info(f"[Resource] Request from {name} for resource <{command.name}>")
+                        response = ResourceResponse(resource, base64.b64encode(content).decode('utf-8'))
+                    await self.push_to_client(client, response.encode())
             except (ConnectionResetError, asyncio.IncompleteReadError):
                 logging.critical(f"[Disconnect] {name} disconnected @ {address}")
                 self._clients.remove(client)

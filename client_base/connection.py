@@ -4,6 +4,11 @@ from abc import ABCMeta, abstractmethod
 class ConnectionABC(object):
     __metaclass__ = ABCMeta
 
+    def __init__(self, host, port):
+        # type: (str, int) -> None
+        self.host = host
+        self.port = port
+
     @abstractmethod
     def send_packet(self, data):
         # type: (bytes) -> None
