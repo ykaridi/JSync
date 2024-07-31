@@ -7,15 +7,15 @@ from java.lang import Runnable
 from jadx.api.plugins import JadxPluginContext
 
 from common.symbol import Symbol
-from client_base.rename_engine import RenameEngineABC
+from java_common.rename_engine import JavaRenameEngineABC
 from .utils import project_id, get_node
-from .config import DATA_ROOT
+from .config import JSYNC_JADX_ROOT
 
 
-class JADXRenameEngine(RenameEngineABC):
+class JADXRenameEngine(JavaRenameEngineABC):
     def __init__(self, context):
         # type: (JadxPluginContext) -> None
-        super(JADXRenameEngine, self).__init__(os.path.join(DATA_ROOT, 'rename_records'))
+        super(JADXRenameEngine, self).__init__(os.path.join(JSYNC_JADX_ROOT, 'rename_records'))
         self._context = context
         self.rename_future = None  # type: Thread
         self.rename_future_lock = Lock()
@@ -24,6 +24,11 @@ class JADXRenameEngine(RenameEngineABC):
         # type: (str, Symbol) -> str
         node = get_node(self._context, project, symbol)
         return node.alias
+
+    def get_original_name(self, project, symbol):
+        # type: (str, Symbol) -> str
+        node = get_node(self._context, project, symbol)
+        return node.name
 
     def _enqueue_rename(self, project, symbol):
         # type: (str, Symbol) -> bool

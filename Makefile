@@ -12,17 +12,17 @@ init:
 	@echo "Creating dist/ folder"
 	mkdir -p dist
 
-jeb:
+jeb: init
 	@echo "Packing JEB plugin"
 	(awk '/^#/ {print} !/^#/ {exit}' < jeb/JSync.py &&\
 	 echo && echo &&\
 	 pybunch -p common -p java_common -p client_base -p jeb -e jeb.JSync -so) > dist/JSync.py
 
-jadx:
+jadx: init
 	@echo "Building JADX plugin"
 	jadx/gradlew -p jadx build
 	cp jadx/build/libs/JSync.jar dist/JSync.jar
 
-server:
+server: init
 	@echo "Packing Server"
 	pybunch -p common -p server -e server -so -o dist/jsync-server.py

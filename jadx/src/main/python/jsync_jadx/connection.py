@@ -1,7 +1,7 @@
 from java.net import Socket
 from org.slf4j import Logger
 
-from java_common.java_connection import JavaConnection
+from java_common.connection import JavaConnection
 
 
 class JADXConnection(JavaConnection):

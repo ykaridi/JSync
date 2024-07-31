@@ -15,7 +15,7 @@ from .rename_engine import JADXRenameEngine
 from .rename_listener import JADXRenameListener
 from .sync_to_server import JADXSyncToServer
 from .utils import project_id
-from .config import DATA_ROOT
+from .config import JSYNC_JADX_ROOT
 from java_common.update_listener import JavaUpdateListener
 from common.commands import FullSyncRequest, Subscribe
 from common.connection import query_server
@@ -61,9 +61,6 @@ class JSync(object):
         if self._connection is not None:
             self._connection.close()
             self._connection = None
-        if self._rename_engine is not None:
-            self._rename_engine.dump_rename_records()
-            self._rename_engine = None
 
         self._logger.error("[JSync] Instance cleaned.")
 
@@ -72,7 +69,7 @@ class JSync(object):
         self._logger.error("[JSync] Activating...")
         self._rename_engine = JADXRenameEngine(self._context)
 
-        config_path = os.path.join(DATA_ROOT, 'connection')
+        config_path = os.path.join(JSYNC_JADX_ROOT, 'connection')
         host, port, name = query_server(
             lambda default: JOptionPane.showInputDialog(
                 "Connection Configuration: <name>@<host>:<port>", default
@@ -83,7 +80,8 @@ class JSync(object):
         sock = Socket(host, port)
         self._connection = JADXConnection(self, self._logger, sock)
         self._connection.send_packet(name.encode('utf-8'))
-        self._rename_listener = JADXRenameListener(self._context, self._logger, self._connection, self._rename_engine)
+        self._rename_listener = JADXRenameListener(self._context, self._logger, self._connection, self._rename_engine,
+                                                   name)
         self._rename_listener.start()
 
         sync_to_server = Thread(JADXSyncToServer(self._context, self._logger, self._connection, self._rename_engine,

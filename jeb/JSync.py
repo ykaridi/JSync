@@ -12,7 +12,7 @@ from java.lang import Thread
 from com.pnfsoftware.jeb.client.api import IScript, IClientContext
 from com.pnfsoftware.jeb.core.units.code.android import IDexUnit
 
-from .config import DATA_ROOT
+from .config import JSYNC_JEB_ROOT
 from .connection import JEBConnection
 from .rename_engine import JEBRenameEngine
 from .rename_listener import JEBRenameListener
@@ -51,9 +51,6 @@ class JSync(IScript):
         if self.connection is not None:
             self.connection.close()
             self.connection = None
-        if self._rename_engine is not None:
-            self._rename_engine.dump_rename_records()
-            self._rename_engine = None
 
         if self._context is None:
             return
@@ -70,7 +67,7 @@ class JSync(IScript):
         print("[jsync] Clearing previous listeners")
         self.clean_previous_executions(ctx)
 
-        config_path = os.path.join(DATA_ROOT, 'connection')
+        config_path = os.path.join(JSYNC_JEB_ROOT, 'connection')
         host, port, name = query_server(
             lambda default: ctx.displayQuestionBox(
                 "Input", "Connection Configuration: <name>@<host>:<port>", default
@@ -82,11 +79,11 @@ class JSync(IScript):
         self.connection = JEBConnection(self, Socket(host, port))
         # Send name to server
         self.connection.send_packet(name)
-        print("[jsync] Successfully connected to server")
+        print("[jsync] Successfully connected to server as %s" % name)
 
         self._rename_engine = JEBRenameEngine(ctx)
 
-        rename_listener = JEBRenameListener(self, ctx, self.connection, self._rename_engine)
+        rename_listener = JEBRenameListener(self, ctx, self.connection, self._rename_engine, name)
         rename_listener.start()
 
         print("[jsync] Preparing to push symbols to server")

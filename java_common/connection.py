@@ -1,9 +1,9 @@
 import struct
 
 import jarray
-from java.io import DataInputStream, BufferedOutputStream, Socket
+from java.io import DataInputStream, BufferedOutputStream
 from org.python.core.util import StringUtil
-from java.net import SocketException
+from java.net import Socket, SocketException
 
 from client_base.connection import ConnectionABC, ConnectionError
 from common.consts import PACKET_SIZE_FORMAT

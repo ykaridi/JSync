@@ -1,6 +1,6 @@
 from jadx.api.plugins import JadxPluginContext
 from jadx.api.plugins.events import JadxEvents
-from jadx.core.dex.nodes import MethodNode
+from jadx.core.dex.nodes import ClassNode, MethodNode, FieldNode
 from jadx.api.plugins.events.types import NodeRenamedByUser
 from org.slf4j import Logger
 
@@ -12,9 +12,9 @@ from .rename_engine import JADXRenameEngine
 
 
 class JADXRenameListener(RenameListenerABC):
-    def __init__(self, context, logger, connection, rename_engine):
-        # type: ('JSync', JadxPluginContext, Logger, ConnectionABC, JADXRenameEngine) -> None
-        super(JADXRenameListener, self).__init__(connection, rename_engine)
+    def __init__(self, context, logger, connection, rename_engine, name):
+        # type: ('JSync', JadxPluginContext, Logger, ConnectionABC, JADXRenameEngine, str) -> None
+        super(JADXRenameListener, self).__init__(connection, rename_engine, name)
         self._context = context
         self._logger = logger
         self._active = False
@@ -26,8 +26,10 @@ class JADXRenameListener(RenameListenerABC):
             _node = rename.node
             if isinstance(_node, MethodNode):
                 nodes = get_internal_base_methods(_node)
-            else:
+            elif isinstance(_node, (ClassNode, FieldNode)):
                 nodes = [_node]
+            else:
+                return
 
             for node in nodes:
                 self.on_rename(project_id(node), encode_symbol(node, new_name=rename.newName))

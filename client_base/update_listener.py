@@ -16,8 +16,8 @@ class UpdateListener(object):
         command = Command.decode(packet)
         if isinstance(command, DownstreamSymbols):
             if command.project in self._projects:
-                for symbol in command.symbols:
-                    self._rename_engine.enqueue_rename(command.project, symbol)
+                self._rename_engine.record_symbols(command.project, command.symbols)
+                self._rename_engine.flush_symbols()
 
     def receive_packet(self):
         # type: () -> bytes

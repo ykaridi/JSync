@@ -12,10 +12,10 @@ from .rename_engine import JEBRenameEngine
 
 
 class JEBRenameListener(IEventListener, RenameListenerABC):
-    def __init__(self, jsync, context, connection, rename_engine):
-        # type: ('JSync', IClientContext, ConnectionABC, JEBRenameEngine) -> None
+    def __init__(self, jsync, context, connection, rename_engine, name):
+        # type: ('JSync', IClientContext, ConnectionABC, JEBRenameEngine, str) -> None
         IEventListener.__init__(self)
-        RenameListenerABC.__init__(self, connection, rename_engine)
+        RenameListenerABC.__init__(self, connection, rename_engine, name)
 
         self._jsync = jsync
         self._is_jsync = True
