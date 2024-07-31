@@ -3,6 +3,7 @@ symbols/
 
 # Local Artifacts
 dist/
+dist-resources/
 *.egg-info/
 *.class
 typings/*
