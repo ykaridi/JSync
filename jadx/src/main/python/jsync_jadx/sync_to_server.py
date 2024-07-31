@@ -33,6 +33,8 @@ class JADXSyncToServer(JavaSyncToServer):
         renames = code_data.renames
 
         symbols = {}
+        # TODO: This actually is not good enough...
+        #       If user deleted symbol while JSync was off, we don't update the server!
         for rename in renames:
             ref = rename.nodeRef
 
@@ -50,7 +52,7 @@ class JADXSyncToServer(JavaSyncToServer):
                 project = project_id(node)
                 symbol = encode_symbol(node)
 
-                if not self._rename_engine.is_symbol_synced(project, symbol):
+                if not self._rename_engine.is_symbol_synced(project, symbol, True):
                     symbols.setdefault(project, []).append(symbol)
 
         for project, project_symbols in symbols.items():

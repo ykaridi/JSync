@@ -1,7 +1,6 @@
 import os
 import atexit
 
-from java.net import Socket
 from java.lang import Thread
 from javax.swing import JOptionPane
 
@@ -15,10 +14,12 @@ from .rename_engine import JADXRenameEngine
 from .rename_listener import JADXRenameListener
 from .sync_to_server import JADXSyncToServer
 from .utils import project_id
-from .config import DATA_ROOT
+from .config import JSYNC_JADX_ROOT
 from java_common.update_listener import JavaUpdateListener
+from java_common.sqlite_adapter import SqliteAdapter
+from java_common.wrappers import ThreadWrapper
 from common.commands import FullSyncRequest, Subscribe
-from common.connection import query_server
+from client_base.server_query import query_server
 from jsync_cache import INSTANCES
 
 
@@ -36,6 +37,7 @@ class JSync(object):
         self._connection = None  # type: JADXConnection
         self._rename_listener = None  # type: JADXRenameListener
         self._update_thread = None  # type: Thread
+        self._initialization_thread = None  # type: Thread
         self._rename_engine = None
 
         INSTANCES.append(self)
@@ -58,21 +60,20 @@ class JSync(object):
         if self._update_thread is not None:
             self._update_thread.interrupt()
             self._update_thread = None
+        if self._initialization_thread is not None:
+            self._initialization_thread.interrupt()
+            self._initialization_thread = None
         if self._connection is not None:
             self._connection.close()
             self._connection = None
-        if self._rename_engine is not None:
-            self._rename_engine.dump_rename_records()
-            self._rename_engine = None
 
         self._logger.error("[JSync] Instance cleaned.")
 
     def start(self):
         # type: () -> None
         self._logger.error("[JSync] Activating...")
-        self._rename_engine = JADXRenameEngine(self._context)
 
-        config_path = os.path.join(DATA_ROOT, 'connection')
+        config_path = os.path.join(JSYNC_JADX_ROOT, 'connection')
         host, port, name = query_server(
             lambda default: JOptionPane.showInputDialog(
                 "Connection Configuration: <name>@<host>:<port>", default
@@ -80,15 +81,24 @@ class JSync(object):
             config_path
         )
 
-        sock = Socket(host, port)
-        self._connection = JADXConnection(self, self._logger, sock)
-        self._connection.send_packet(name.encode('utf-8'))
-        self._rename_listener = JADXRenameListener(self._context, self._logger, self._connection, self._rename_engine)
+        self._connection = JADXConnection(self, self._logger, host, port, name)
+
+        self._initialization_thread = Thread(ThreadWrapper(self.initialize))
+        self._initialization_thread.start()
+
+    def initialize(self):
+        SqliteAdapter.ensure_jars(self._connection)
+
+        self._rename_engine = JADXRenameEngine(self._context, self._connection.name)
+        self._rename_listener = JADXRenameListener(self._context, self._logger, self._connection, self._rename_engine,
+                                                   self._connection.name)
         self._rename_listener.start()
 
         sync_to_server = Thread(JADXSyncToServer(self._context, self._logger, self._connection, self._rename_engine,
                                                  self.after_sync))
         sync_to_server.start()
+
+        self._initialization_thread = None
 
     def after_sync(self):
         # type: () -> None

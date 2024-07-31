@@ -6,21 +6,22 @@ import os
 import sys
 import traceback
 
-from java.net import Socket
 from java.lang import Thread
 
 from com.pnfsoftware.jeb.client.api import IScript, IClientContext
 from com.pnfsoftware.jeb.core.units.code.android import IDexUnit
 
-from .config import DATA_ROOT
+from .config import JSYNC_JEB_ROOT
 from .connection import JEBConnection
 from .rename_engine import JEBRenameEngine
 from .rename_listener import JEBRenameListener
 from .sync_to_server import JEBSyncToServer
 from .utils import project_id
 from java_common.update_listener import JavaUpdateListener
+from java_common.sqlite_adapter import SqliteAdapter
+from java_common.wrappers import ThreadWrapper
 from common.commands import Subscribe, FullSyncRequest
-from common.connection import query_server
+from client_base.server_query import query_server
 
 
 class JSync(IScript):
@@ -31,6 +32,7 @@ class JSync(IScript):
         self.sync_to_server_thread = None  # type: Thread
         self._rename_engine = None  # type: JEBRenameEngine
         self._context = None  # type: IClientContext
+        self._initialization_thread = None  # type: Thread
 
         atexit.register(self.clean)
 
@@ -48,12 +50,12 @@ class JSync(IScript):
         if self.update_listener_thread is not None:
             self.update_listener_thread.interrupt()
             self.update_listener_thread = None
+        if self._initialization_thread is not None:
+            self._initialization_thread.interrupt()
+            self._initialization_thread = None
         if self.connection is not None:
             self.connection.close()
             self.connection = None
-        if self._rename_engine is not None:
-            self._rename_engine.dump_rename_records()
-            self._rename_engine = None
 
         if self._context is None:
             return
@@ -70,7 +72,7 @@ class JSync(IScript):
         print("[jsync] Clearing previous listeners")
         self.clean_previous_executions(ctx)
 
-        config_path = os.path.join(DATA_ROOT, 'connection')
+        config_path = os.path.join(JSYNC_JEB_ROOT, 'connection')
         host, port, name = query_server(
             lambda default: ctx.displayQuestionBox(
                 "Input", "Connection Configuration: <name>@<host>:<port>", default
@@ -79,14 +81,19 @@ class JSync(IScript):
         )
 
         # Create server connection socket
-        self.connection = JEBConnection(self, Socket(host, port))
-        # Send name to server
-        self.connection.send_packet(name)
-        print("[jsync] Successfully connected to server")
+        self.connection = JEBConnection(self, host, port, name)
+        print("[jsync] Successfully connected to server as %s" % name)
 
-        self._rename_engine = JEBRenameEngine(ctx)
+        self._initialization_thread = Thread(ThreadWrapper(self.initialize, ctx))
+        self._initialization_thread.start()
 
-        rename_listener = JEBRenameListener(self, ctx, self.connection, self._rename_engine)
+    def initialize(self, ctx):
+        # type: (IClientContext) -> None
+        SqliteAdapter.ensure_jars(self.connection)
+
+        self._rename_engine = JEBRenameEngine(ctx, self.connection.name)
+
+        rename_listener = JEBRenameListener(self, ctx, self.connection, self._rename_engine, self.connection.name)
         rename_listener.start()
 
         print("[jsync] Preparing to push symbols to server")
@@ -94,6 +101,8 @@ class JSync(IScript):
             JEBSyncToServer(ctx, self.connection, self._rename_engine, functools.partial(self.after_sync, ctx=ctx))
         )
         self.sync_to_server_thread.start()
+
+        self._initialization_thread = None
 
     def after_sync(self, ctx):
         # type: (IClientContext) -> None

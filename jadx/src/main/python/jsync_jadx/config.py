@@ -1,6 +1,8 @@
 import os
 
+from client_base.config import JSYNC_ROOT
 
-DATA_ROOT = os.path.expanduser("~/.jsync/jadx")
-if not os.path.exists(DATA_ROOT):
-    os.makedirs(DATA_ROOT)
+
+JSYNC_JADX_ROOT = os.path.join(JSYNC_ROOT, 'jadx')
+if not os.path.exists(JSYNC_JADX_ROOT):
+    os.makedirs(JSYNC_JADX_ROOT)

@@ -1,15 +1,19 @@
 import asyncio
+import base64
 import logging
 import socket
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import List, Dict, Set
+from pathlib import Path
 
-from .symbol_store import SymbolStore
-from .utils import LazyDict, recv_packet, send_packet
+from .utils import recv_packet, send_packet
+from common.lazy_dict import LazyDict
 from common.symbol import Symbol
-from common.commands import Command, Subscribe, Unsubscribe, UpstreamSymbols, DownstreamSymbols, FullSyncRequest
+from common.symbol_store import SymbolStoreABC
+from common.commands import (Command, Subscribe, Unsubscribe, UpstreamSymbols, DownstreamSymbols, FullSyncRequest,
+                             ResourceRequest, ResourceResponse)
 
 
 logging.basicConfig(level=logging.DEBUG, format='%(message)s')
@@ -29,12 +33,16 @@ class SymbolServer(ABC):
     def __init__(self, host: str, port: int):
         self._host = host
         self._port = port
-        self._stores: LazyDict[str, SymbolStore] = LazyDict(mapping=self._get_store)
+        self._stores: LazyDict[str, SymbolStoreABC] = LazyDict(mapping=self._get_store)
         self._clients: Set[Client] = set()
         self._project_associations: Dict[str, Set[Client]] = defaultdict(lambda: set())
 
     @abstractmethod
-    def _get_store(self, project: str) -> SymbolStore:
+    def _get_store(self, project: str) -> SymbolStoreABC:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_resource(self, name: str) -> bytes:
         raise NotImplementedError
 
     @staticmethod
@@ -86,20 +94,31 @@ class SymbolServer(ABC):
                     for symbol in symbols:
                         symbol.author = name
 
-                    symbols = list(store.changed_symbols(symbols))
+                    # TODO: Is this really needed?
+                    # symbols = list(store.changed_symbols(symbols))
 
                     if command.loggable:
                         for symbol in symbols:
                             logging.info(f"[Symbol] {name} @ {command.project}:"
                                          f" {symbol.canonical_signature} -> {symbol.name}")
 
-                    store.push_symbols(symbols, only_changed=False)
+                    store.push_symbols(symbols)
                     await self.push_update(command.project, symbols, client)
                 elif isinstance(command, FullSyncRequest):
                     logging.info(f"[Full Sync] Request from {name} for project <{command.project}>")
                     store = self._stores[command.project]
-                    symbols = list(store.get_latest_symbols())
+                    symbols = list(store.get_symbols())
                     await self.push_symbols(client, command.project, symbols)
+                elif isinstance(command, ResourceRequest):
+                    resource = command.name
+                    content = self._get_resource(resource)
+                    if content is None:
+                        logging.info(f"[Resource] Request from {name} for non-existent resource <{command.name}>")
+                        response = ResourceResponse(resource, None)
+                    else:
+                        logging.info(f"[Resource] Request from {name} for resource <{command.name}>")
+                        response = ResourceResponse(resource, base64.b64encode(content).decode('utf-8'))
+                    await self.push_to_client(client, response.encode())
             except (ConnectionResetError, asyncio.IncompleteReadError):
                 logging.critical(f"[Disconnect] {name} disconnected @ {address}")
                 self._clients.remove(client)

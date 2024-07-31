@@ -1,19 +1,27 @@
 import struct
 
 import jarray
-from java.io import DataInputStream, BufferedOutputStream, Socket
+from java.io import DataInputStream, BufferedOutputStream
 from org.python.core.util import StringUtil
-from java.net import SocketException
+from java.net import Socket, SocketException
 
 from client_base.connection import ConnectionABC, ConnectionError
 from common.consts import PACKET_SIZE_FORMAT
 
 
 class JavaConnection(ConnectionABC):
-    def __init__(self, sock):
-        # type: (Socket) -> None
-        self._socket = sock
+    def __init__(self, host, port, name):
+        # type: (str, int, str) -> None
+        ConnectionABC.__init__(self, host, port)
+        self.name = name
+        self._socket = Socket(host, port)
         self._active = True
+
+        self.initialize()
+
+    def initialize(self):
+        # type: () -> None
+        self.send_packet(self.name)
 
     @property
     def active(self):

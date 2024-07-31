@@ -14,3 +14,17 @@ class Symbol(Dataclass):
         self.name = name  # type: str
         self.timestamp = timestamp  # type: int
         self.author = author  # type: str
+
+    @property
+    def as_tuple(self):
+        return self.symbol_type, self.canonical_signature, self.name, self.timestamp, self.author
+
+    @property
+    def stripped(self):
+        return Symbol(self.symbol_type, self.canonical_signature, None)
+
+    def __hash__(self):
+        return hash(self.as_tuple)
+
+    def __eq__(self, other):
+        return isinstance(other, Symbol) and self.as_tuple == other.as_tuple

@@ -11,9 +11,6 @@ from java_common.sync_to_server import JavaSyncToServer
 from .utils import project_id, encode_symbol, method_is_override, is_internal
 
 
-QUICK = True
-
-
 class JEBSyncToServer(JavaSyncToServer):
     def __init__(self, ctx, connection, rename_engine, callback):
         # type: (IRuntimeProject, ConnectionABC, RenameEngineABC, callable) -> None
@@ -31,14 +28,15 @@ class JEBSyncToServer(JavaSyncToServer):
                 if not is_internal(item):
                     continue
 
-                if QUICK:
-                    if not item.renamed:
-                        continue
+                if not item.renamed:
+                    # TODO: This actually is not good enough...
+                    #       If user deleted symbol while JSync was off, we don't update the server!
+                    continue
 
                 project = project_id(item)
                 symbol = encode_symbol(item)
 
-                if self._rename_engine.is_symbol_synced(project, symbol):
+                if self._rename_engine.is_symbol_synced(project, symbol, item.renamed):
                     continue
 
                 if isinstance(item, IDexMethod) and method_is_override(item):

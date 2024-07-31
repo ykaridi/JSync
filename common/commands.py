@@ -79,5 +79,16 @@ class FullSyncRequest(Command):
         self.project = project
 
 
+class ResourceRequest(Command):
+    def __init__(self, name):
+        self.name = name
+
+
+class ResourceResponse(Command):
+    def __init__(self, name, content):
+        self.name = name
+        self.content = content
+
+
 COMMAND_ENCODER = _CommandEncoder()
 COMMAND_DECODER = _CommandDecoder()

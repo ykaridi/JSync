@@ -7,18 +7,18 @@ from com.pnfsoftware.jeb.client.api import IClientContext
 
 from common.symbol import SYMBOL_TYPE_FIELD, SYMBOL_TYPE_METHOD, SYMBOL_TYPE_CLASS
 from common.symbol import Symbol
-from client_base.rename_engine import RenameEngineABC
-from .utils import project_id
-from .config import DATA_ROOT
+from java_common.rename_engine import JavaRenameEngineABC
+from .utils import project_id, encode_symbol
+from .config import JSYNC_JEB_ROOT
 
 
 METADATA_GROUP_NAME = "jsync <%s>"
 
 
-class JEBRenameEngine(RenameEngineABC):
-    def __init__(self, context):
-        # type: (IClientContext) -> None
-        RenameEngineABC.__init__(self, os.path.join(DATA_ROOT, 'rename_records'))
+class JEBRenameEngine(JavaRenameEngineABC):
+    def __init__(self, context, self_author):
+        # type: (IClientContext, str) -> None
+        JavaRenameEngineABC.__init__(self, self_author, os.path.join(JSYNC_JEB_ROOT, 'rename_records'))
         self._lock = Lock()
         self._jeb_project = context.mainProject
         self._projects = None
@@ -40,7 +40,12 @@ class JEBRenameEngine(RenameEngineABC):
     def get_name(self, project, symbol):
         # type: (str, Symbol) -> str
         item = self._get_dex_item(project, symbol)
-        return item.getName(True)
+        return item.getName(True) or item.getName(False)
+
+    def get_original_name(self, project, symbol):
+        # type: (str, Symbol) -> str
+        item = self._get_dex_item(project, symbol)
+        return item.getName(False)
 
     @property
     def projects(self):

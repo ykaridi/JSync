@@ -1,12 +1,12 @@
 from java.net import Socket
 
-from java_common.java_connection import JavaConnection
+from java_common.connection import JavaConnection
 
 
 class JEBConnection(JavaConnection):
-    def __init__(self, jsync, sock):
-        # type: ('JSync', Socket) -> None
-        super(JEBConnection, self).__init__(sock)
+    def __init__(self, jsync, host, port, name):
+        # type: ('JSync', str, int, str) -> None
+        JavaConnection.__init__(self, host, port, name)
         self._jsync = jsync
 
     def close(self, on_exception=False):
