@@ -1,4 +1,4 @@
-from common.commands import Command, DownstreamSymbols
+from common.commands import Command, DownstreamSymbols, FullSyncComplete
 from .connection import ConnectionABC
 from .rename_engine import RenameEngineABC
 
@@ -17,6 +17,9 @@ class UpdateListener(object):
             if command.project in self._projects:
                 self._rename_engine.record_symbols(command.project, command.symbols)
                 self._rename_engine.flush_all_symbols()
+        elif isinstance(command, FullSyncComplete):
+            if command.project in self._projects:
+                self._rename_engine.set_metadata_property(command.project, 'last_sync', command.timestamp)
 
     def receive_packet(self):
         # type: () -> bytes

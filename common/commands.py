@@ -74,9 +74,17 @@ class DownstreamSymbols(Command):
 
 
 class FullSyncRequest(Command):
-    def __init__(self, project):
-        # type: (str) -> None
+    def __init__(self, project, since):
+        # type: (str, int) -> None
         self.project = project
+        self.since = since
+
+
+class FullSyncComplete(Command):
+    def __init__(self, project, timestamp):
+        # type: (str, int) -> None
+        self.project = project
+        self.timestamp = timestamp
 
 
 class ResourceRequest(Command):

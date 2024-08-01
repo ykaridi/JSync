@@ -32,20 +32,23 @@ DELETE FROM symbols WHERE author = ? AND canonical_signature = ? AND timestamp =
 GET_SYMBOLS_QUERY = """
 SELECT *, max(timestamp)
 FROM symbols
+WHERE timestamp > ?
 GROUP BY canonical_signature, author;
 """
 GET_SYMBOLS_CANONICAL_SIGNATURE_QUERY = """
 SELECT *, max(timestamp)
 FROM symbols
-WHERE canonical_signature = ? GROUP BY author;
+WHERE canonical_signature = ? AND timestamp > ? 
+GROUP BY author;
 """
 GET_SYMBOLS_AUTHOR_QUERY = """
 SELECT *, max(timestamp)
 FROM symbols
-WHERE author = ? GROUP BY canonical_signature;
+WHERE author = ? AND timestamp > ? 
+GROUP BY canonical_signature;
 """
 GET_SYMBOLS_CANONICAL_SIGNATURE_AUTHOR_QUERY = """
 SELECT *, max(timestamp)
 FROM symbols
-WHERE canonical_signature = ? AND author = ?;
+WHERE canonical_signature = ? AND author = ? AND timestamp > ?;
 """

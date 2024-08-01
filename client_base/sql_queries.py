@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS rename_records (
 );
 """
 PUSH_RENAME_QUERY = """
-INSERT OR REPLACE INTO rename_records (canonical_signature, symbol_type, name) VALUES (?, ?, ?);
+REPLACE INTO rename_records (canonical_signature, symbol_type, name) VALUES (?, ?, ?);
 """
 DELETE_RENAME_QUERY = """
 DELETE FROM rename_records WHERE canonical_signature = ?;
@@ -32,4 +32,17 @@ WHERE canonical_signature = ?;
 GET_RENAMES_QUERY = """
 SELECT canonical_signature, symbol_type, name
 FROM rename_records;
+"""
+
+CREATE_METADATA_TABLE_QUERY = """
+CREATE TABLE IF NOT EXISTS metadata (
+    property TEXT,
+    value TEXT,
+    PRIMARY KEY (property)
+);"""
+WRITE_METADATA_PROPERTY_QUERY = """
+REPLACE INTO metadata(property, value) VALUES (?, ?);
+"""
+READ_METADATA_PROPERTY_QUERY = """
+SELECT value FROM metadata WHERE property = ?;
 """

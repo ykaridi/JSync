@@ -1,3 +1,4 @@
+import time
 import asyncio
 import base64
 import logging
@@ -5,15 +6,14 @@ import socket
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import List, Dict, Set
-from pathlib import Path
+from typing import List, Dict, Set, Mapping
 
 from .utils import recv_packet, send_packet
 from common.lazy_dict import LazyDict
 from common.symbol import Symbol
 from common.symbol_store import SymbolStoreABC
 from common.commands import (Command, Subscribe, Unsubscribe, UpstreamSymbols, DownstreamSymbols, FullSyncRequest,
-                             ResourceRequest, ResourceResponse)
+                             ResourceRequest, ResourceResponse, FullSyncComplete)
 
 
 logging.basicConfig(level=logging.DEBUG, format='%(message)s')
@@ -33,7 +33,7 @@ class SymbolServer(ABC):
     def __init__(self, host: str, port: int):
         self._host = host
         self._port = port
-        self._stores: LazyDict[str, SymbolStoreABC] = LazyDict(mapping=self._get_store)
+        self._stores: Mapping[str, SymbolStoreABC] = LazyDict(mapping=self._get_store)
         self._clients: Set[Client] = set()
         self._project_associations: Dict[str, Set[Client]] = defaultdict(lambda: set())
 
@@ -90,9 +90,7 @@ class SymbolServer(ABC):
                         self._project_associations[command.project].remove(client)
                 elif isinstance(command, UpstreamSymbols):
                     store = self._stores[command.project]
-                    symbols = command.symbols
-                    for symbol in symbols:
-                        symbol.author = name
+                    symbols = [symbol.timestamped.authored(name) for symbol in command.symbols]
 
                     if command.loggable:
                         for symbol in symbols:
@@ -102,10 +100,13 @@ class SymbolServer(ABC):
                     store.push_symbols(symbols)
                     await self.push_update(command.project, symbols, client)
                 elif isinstance(command, FullSyncRequest):
-                    logging.info(f"[Full Sync] Request from {name} for project <{command.project}>")
+                    since = int(command.since)
+                    logging.info(f"[Full Sync] Request from {name} for project <{command.project}> since {since}")
+                    timestamp = int(time.time())
                     store = self._stores[command.project]
-                    symbols = list(store.get_symbols())
+                    symbols = list(store.get_symbols(since=since))
                     await self.push_symbols(client, command.project, symbols)
+                    await self.push_to_client(client, FullSyncComplete(command.project, timestamp).encode())
                 elif isinstance(command, ResourceRequest):
                     resource = command.name
                     content = self._get_resource(resource)

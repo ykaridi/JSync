@@ -4,7 +4,8 @@ from common.symbol_store import SymbolStoreABC
 from common.symbol import Symbol
 from .sql_queries import (CLIENT_CREATE_SYMBOLS_TABLE_QUERY, CREATE_RENAME_RECORDS_TABLE_QUERY, PUSH_RENAME_QUERY,
                           DELETE_RENAME_QUERY, GET_RENAME_BY_CANONICAL_SIGNATURE_QUERY, GET_RENAMES_QUERY,
-                          CLIENT_DELETE_SYMBOLS_QUERY)
+                          CLIENT_DELETE_SYMBOLS_QUERY, CREATE_METADATA_TABLE_QUERY, WRITE_METADATA_PROPERTY_QUERY,
+                          READ_METADATA_PROPERTY_QUERY)
 
 
 class ClientSymbolStoreABC(SymbolStoreABC):
@@ -18,6 +19,7 @@ class ClientSymbolStoreABC(SymbolStoreABC):
         # type: () -> None
         self._conn.execute(CLIENT_CREATE_SYMBOLS_TABLE_QUERY)
         self._conn.execute(CREATE_RENAME_RECORDS_TABLE_QUERY)
+        self._conn.execute(CREATE_METADATA_TABLE_QUERY)
 
     @property
     def latest_known_renames(self):
@@ -50,3 +52,15 @@ class ClientSymbolStoreABC(SymbolStoreABC):
         batch = [(symbol.author, symbol.canonical_signature) for symbol in symbols]
 
         return self._conn.executemany(CLIENT_DELETE_SYMBOLS_QUERY, batch)
+
+    def set_metadata_property(self, prop, value):
+        # type: (str, str) -> None
+        self._conn.execute(WRITE_METADATA_PROPERTY_QUERY, prop, value)
+
+    def get_metadata_property(self, prop):
+        # type: (str) -> str | None
+        results = list(self._conn.execute_query(READ_METADATA_PROPERTY_QUERY, prop))
+        if len(results) == 0:
+            return None
+        else:
+            return results[0][0]

@@ -48,17 +48,17 @@ class SymbolStoreABC(object):
                  for symbol in symbols]
         return self._conn.executemany(PUSH_SYMBOLS_QUERY, batch)
 
-    def get_symbols(self, canonical_signature=None, author=None):
-        # type: (str | None, str | None) -> iter[Symbol]
+    def get_symbols(self, canonical_signature=None, author=None, since=0):
+        # type: (str | None, str | None, int) -> iter[Symbol]
         if canonical_signature is None and author is None:
-            results = self._conn.execute_query(GET_SYMBOLS_QUERY)
+            results = self._conn.execute_query(GET_SYMBOLS_QUERY, since)
         elif canonical_signature is not None and author is None:
-            results = self._conn.execute_query(GET_SYMBOLS_CANONICAL_SIGNATURE_QUERY, canonical_signature)
+            results = self._conn.execute_query(GET_SYMBOLS_CANONICAL_SIGNATURE_QUERY, canonical_signature, since)
         elif canonical_signature is None and author is not None:
-            results = self._conn.execute_query(GET_SYMBOLS_AUTHOR_QUERY, author)
+            results = self._conn.execute_query(GET_SYMBOLS_AUTHOR_QUERY, author, since)
         elif canonical_signature is not None and author is not None:
             results = self._conn.execute_query(GET_SYMBOLS_CANONICAL_SIGNATURE_AUTHOR_QUERY,
-                                               canonical_signature, author)
+                                               canonical_signature, author, since)
 
         for row in results:  # noqa
             if all(x is None for x in row):
