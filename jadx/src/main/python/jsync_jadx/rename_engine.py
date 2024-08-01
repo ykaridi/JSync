@@ -15,7 +15,7 @@ from .config import JSYNC_JADX_ROOT
 class JADXRenameEngine(JavaRenameEngineABC):
     def __init__(self, context, self_author):
         # type: (JadxPluginContext, str) -> None
-        super(JADXRenameEngine, self).__init__(self_author, os.path.join(JSYNC_JADX_ROOT, 'rename_records'))
+        JavaRenameEngineABC.__init__(self, self_author, os.path.join(JSYNC_JADX_ROOT, 'rename_records'))
         self._context = context
         self.rename_future = None  # type: Thread
         self.rename_future_lock = Lock()
@@ -23,7 +23,8 @@ class JADXRenameEngine(JavaRenameEngineABC):
     def get_name(self, project, symbol):
         # type: (str, Symbol) -> str
         node = get_node(self._context, project, symbol)
-        return node.alias
+        alias = node.alias
+        return alias if alias is not None else node.name
 
     def get_original_name(self, project, symbol):
         # type: (str, Symbol) -> str
@@ -54,7 +55,7 @@ class JADXRenameEngine(JavaRenameEngineABC):
 class ApplyRename(Runnable):
     def __init__(self, context, rename_engine):
         # type: (JadxPluginContext, JADXRenameEngine) -> None
-        super(ApplyRename, self).__init__()
+        Runnable.__init__(self)
         self._context = context
         self._rename_engine = rename_engine
         self.nodes = []

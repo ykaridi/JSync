@@ -1,11 +1,13 @@
+import itertools
 import hashlib
 import re
 
+from jadx.api import JadxDecompiler
 from jadx.api.plugins import JadxPluginContext
 from jadx.core.dex.nodes import ClassNode, MethodNode, FieldNode
 from jadx.core.codegen import TypeGen
 from jadx.plugins.input.dex.sections import DexClassData
-from jadx.plugins.input.dex import DexReader
+from jadx.plugins.input.dex import DexReader, DexLoadResult
 from jadx.core.dex.attributes import AType
 from jadx.core.dex.instructions.args import ArgType
 
@@ -16,8 +18,14 @@ from common.symbol import Symbol, SYMBOL_TYPE_CLASS, SYMBOL_TYPE_METHOD, SYMBOL_
 # id(DexReader) -> str
 CACHED_IDENTIFIERS = {}
 
-_in_field = DexClassData.getDeclaredField('in')
-_in_field.setAccessible(True)
+DexClassData_in_field = DexClassData.getDeclaredField('in')
+DexClassData_in_field.setAccessible(True)
+
+JadxDecompiler_loadedInputs_field = JadxDecompiler.getDeclaredField('loadedInputs')
+JadxDecompiler_loadedInputs_field.setAccessible(True)
+
+DexLoadResult_dexReaders_field = DexLoadResult.getDeclaredField('dexReaders')
+DexLoadResult_dexReaders_field.setAccessible(True)
 
 
 def get_name(node):
@@ -63,7 +71,7 @@ def project_id(obj):
         if not isinstance(class_data, DexClassData):
             raise ValueError("Only DEX files are currently supported")
 
-        dex_reader = _in_field.get(class_data).dexReader
+        dex_reader = DexClassData_in_field.get(class_data).dexReader
     elif isinstance(obj, DexReader):
         dex_reader = obj
     else:
@@ -75,6 +83,22 @@ def project_id(obj):
         CACHED_IDENTIFIERS[internal_id] = hashlib.md5(data).hexdigest()
 
     return CACHED_IDENTIFIERS[internal_id]
+
+
+def get_all_projects(context):
+    # type: (JadxPluginContext) -> list[str]
+    decompiler = context.decompiler
+    loaded_inputs = JadxDecompiler_loadedInputs_field.get(decompiler)
+    
+    return list(
+        itertools.chain(
+            *(
+                (project_id(dex_reader) for dex_reader in DexLoadResult_dexReaders_field.get(code_input))
+                for code_input in loaded_inputs
+                if isinstance(code_input, DexLoadResult)
+            )
+        )
+    )
 
 
 def get_class(context, class_name):

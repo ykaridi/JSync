@@ -12,8 +12,8 @@ from org.slf4j import Logger
 from .connection import JADXConnection
 from .rename_engine import JADXRenameEngine
 from .rename_listener import JADXRenameListener
-from .sync_to_server import JADXSyncToServer
-from .utils import project_id
+from .scan_updated_symbols import JADXScanUpdatedSymbols
+from .utils import project_id, get_all_projects
 from .config import JSYNC_JADX_ROOT
 from java_common.update_listener import JavaUpdateListener
 from java_common.sqlite_adapter import SqliteAdapter
@@ -50,7 +50,6 @@ class JSync(object):
 
     def clean(self):
         # type: () -> None
-        self._logger.error("[JSync] Cleaning instance...")
         if self in INSTANCES:
             INSTANCES.remove(self)
 
@@ -67,12 +66,8 @@ class JSync(object):
             self._connection.close()
             self._connection = None
 
-        self._logger.error("[JSync] Instance cleaned.")
-
     def start(self):
         # type: () -> None
-        self._logger.error("[JSync] Activating...")
-
         config_path = os.path.join(JSYNC_JADX_ROOT, 'connection')
         host, port, name = query_server(
             lambda default: JOptionPane.showInputDialog(
@@ -96,13 +91,14 @@ class JSync(object):
         SqliteAdapter.ensure_jars(self._connection)
 
         self._rename_engine = JADXRenameEngine(self._context, self._connection.name)
-        self._rename_listener = JADXRenameListener(self._context, self._logger, self._connection, self._rename_engine,
-                                                   self._connection.name)
+        self._rename_listener = JADXRenameListener(self._context, self._connection, self._rename_engine)
         self._rename_listener.start()
 
-        sync_to_server = Thread(JADXSyncToServer(self._context, self._logger, self._connection, self._rename_engine,
-                                                 self.after_sync))
-        sync_to_server.start()
+        scan_updated_symbols = Thread(JADXScanUpdatedSymbols(
+            self._context, self._logger, self._connection, self._rename_engine,
+            get_all_projects(self._context), self.after_sync
+        ))
+        scan_updated_symbols.start()
 
         self._initialization_thread = None
 
@@ -128,10 +124,11 @@ class JSync(object):
         self._update_thread = Thread(JavaUpdateListener(self._connection, projects, self._rename_engine))
         self._update_thread.start()
 
-        self._logger.info("[JSync] Activated")
+        self._logger.error("[JSync] Activated")
 
 
 def run(context, logger):
     # type: (JadxPluginContext, Logger) -> None
+    logger.error("[JSync] Cleaning previous instances...")
     clean_previous_executions()
     JSync(context, logger).start()

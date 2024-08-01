@@ -23,7 +23,7 @@ class JEBRenameEngine(JavaRenameEngineABC):
         self._jeb_project = context.mainProject
         self._projects = None
 
-    def _get_dex_item(self, project, symbol):
+    def get_dex_item(self, project, symbol):
         # type: (str, Symbol) -> IDexItem
         dex_file = self.projects[project]
         unit = dex_file.ownerUnit
@@ -39,12 +39,12 @@ class JEBRenameEngine(JavaRenameEngineABC):
 
     def get_name(self, project, symbol):
         # type: (str, Symbol) -> str
-        item = self._get_dex_item(project, symbol)
+        item = self.get_dex_item(project, symbol)
         return item.getName(True) or item.getName(False)
 
     def get_original_name(self, project, symbol):
         # type: (str, Symbol) -> str
-        item = self._get_dex_item(project, symbol)
+        item = self.get_dex_item(project, symbol)
         return item.getName(False)
 
     @property
@@ -65,7 +65,7 @@ class JEBRenameEngine(JavaRenameEngineABC):
 
     def _enqueue_rename(self, project, symbol):
         # type: (str, Symbol) -> bool
-        item = self._get_dex_item(project, symbol)
+        item = self.get_dex_item(project, symbol)
         if item is None or project_id(item) != project:
             return False
 

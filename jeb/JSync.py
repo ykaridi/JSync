@@ -15,7 +15,7 @@ from .config import JSYNC_JEB_ROOT
 from .connection import JEBConnection
 from .rename_engine import JEBRenameEngine
 from .rename_listener import JEBRenameListener
-from .sync_to_server import JEBSyncToServer
+from .scan_updated_symbols import JEBScanUpdatedSymbols
 from .utils import project_id
 from java_common.update_listener import JavaUpdateListener
 from java_common.sqlite_adapter import SqliteAdapter
@@ -29,7 +29,7 @@ class JSync(IScript):
         # type: () -> None
         self.connection = None  # type: JEBConnection
         self.update_listener_thread = None  # type: Thread
-        self.sync_to_server_thread = None  # type: Thread
+        self.scan_updated_symbols_thread = None  # type: Thread
         self._rename_engine = None  # type: JEBRenameEngine
         self._context = None  # type: IClientContext
         self._initialization_thread = None  # type: Thread
@@ -69,7 +69,6 @@ class JSync(IScript):
     def run(self, ctx):
         # type: (IClientContext) -> None
         self._context = ctx
-        print("[jsync] Clearing previous listeners")
         self.clean_previous_executions(ctx)
 
         config_path = os.path.join(JSYNC_JEB_ROOT, 'connection')
@@ -99,21 +98,21 @@ class JSync(IScript):
 
         self._rename_engine = JEBRenameEngine(ctx, self.connection.name)
 
-        rename_listener = JEBRenameListener(self, ctx, self.connection, self._rename_engine, self.connection.name)
+        rename_listener = JEBRenameListener(self, ctx, self.connection, self._rename_engine)
         rename_listener.start()
 
-        print("[jsync] Preparing to push symbols to server")
-        self.sync_to_server_thread = Thread(
-            JEBSyncToServer(ctx, self.connection, self._rename_engine, functools.partial(self.after_sync, ctx=ctx))
+        self.scan_updated_symbols_thread = Thread(
+            JEBScanUpdatedSymbols(ctx, self.connection, self._rename_engine, list(self._rename_engine.projects.keys()),
+                                  functools.partial(self.after_sync, ctx=ctx))
         )
-        self.sync_to_server_thread.start()
+        self.scan_updated_symbols_thread.start()
 
         self._initialization_thread = None
 
     def after_sync(self, ctx):
         # type: (IClientContext) -> None
-        print("[jsync] Finished pushing symbols to server")
-        print("[jsync] Subscribing to active projects")
+        print("[JSync] Finished pushing symbols to server")
+        print("[JSync] Subscribing to active projects")
         try:
             prj = ctx.mainProject
 
@@ -130,4 +129,4 @@ class JSync(IScript):
         except:  # noqa
             traceback.print_exc(file=sys.stdout)
 
-        print("[jsync] Ready!")
+        print("[JSync] Ready!")

@@ -2,7 +2,6 @@ from jadx.api.plugins import JadxPluginContext
 from jadx.api.plugins.events import JadxEvents
 from jadx.core.dex.nodes import ClassNode, MethodNode, FieldNode
 from jadx.api.plugins.events.types import NodeRenamedByUser
-from org.slf4j import Logger
 
 from client_base.connection import ConnectionABC
 from client_base.rename_listener import RenameListenerABC
@@ -12,11 +11,10 @@ from .rename_engine import JADXRenameEngine
 
 
 class JADXRenameListener(RenameListenerABC):
-    def __init__(self, context, logger, connection, rename_engine, name):
-        # type: ('JSync', JadxPluginContext, Logger, ConnectionABC, JADXRenameEngine, str) -> None
-        super(JADXRenameListener, self).__init__(connection, rename_engine, name)
+    def __init__(self, context, connection, rename_engine):
+        # type: ('JSync', JadxPluginContext, ConnectionABC, JADXRenameEngine) -> None
+        RenameListenerABC.__init__(self, connection, rename_engine)
         self._context = context
-        self._logger = logger
         self._active = False
         self._activated = False
 
