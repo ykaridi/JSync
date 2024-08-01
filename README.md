@@ -25,7 +25,7 @@ def evaluate_symbol(symbols, self_author):
 		return my_symbol
 	
 	latest = max(symbols, key=lambda symbol: symbol.timestamp)
-	return latest.clone(name='%s_%s' % (latest.author[0], latest.name))
+	return latest.named('%s_%s' % (latest.author[0], latest.name))
 ```
 
 ## Development
