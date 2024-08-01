@@ -135,3 +135,11 @@ class RenameEngineABC(object):
     def _enqueue_rename(self, project, symbol):
         # type: (str, Symbol) -> bool
         raise NotImplementedError
+
+    def set_metadata_property(self, project, prop, value):
+        # type: (str, str, str) -> None
+        self._symbol_stores[project].set_metadata_property(prop, value)
+
+    def get_metadata_property(self, project, prop):
+        # type: (str, str) -> str | None
+        return self._symbol_stores[project].get_metadata_property(prop)

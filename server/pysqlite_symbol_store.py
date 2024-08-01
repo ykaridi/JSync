@@ -12,19 +12,19 @@ class SqliteAdapter(SqliteAdapterABC):
 
     def execute(self, statement: str, *arguments) -> None:
         with closing(self._conn.cursor()) as cur:
-            cur.execute(statement, *arguments)
+            cur.execute(statement, arguments)
         self._conn.commit()
 
     def execute_update(self, statement: str, *arguments) -> int:
         with closing(self._conn.cursor()) as cur:
-            cur.execute(statement, *arguments)
+            cur.execute(statement, arguments)
             row_count = cur.rowcount
         self._conn.commit()
         return row_count
 
     def execute_query(self, statement, *arguments) -> Iterable:
         with closing(self._conn.cursor()) as cur:
-            cur.execute(statement, *arguments)
+            cur.execute(statement, arguments)
             yield from cur
 
     def executemany(self, statement: str, rows: list):

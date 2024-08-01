@@ -111,7 +111,6 @@ class JSync(IScript):
 
     def after_sync(self, ctx):
         # type: (IClientContext) -> None
-        print("[JSync] Finished pushing symbols to server")
         print("[JSync] Subscribing to active projects")
         try:
             prj = ctx.mainProject
@@ -121,8 +120,11 @@ class JSync(IScript):
                 for dex_file in dex_unit.dexFiles:
                     pid = project_id(dex_file)
                     projects.append(pid)
+
                     self.connection.send_packet(Subscribe(pid).encode())
-                    self.connection.send_packet(FullSyncRequest(pid).encode())
+
+                    last_sync = int(self._rename_engine.get_metadata_property(pid, 'last_sync') or 0)
+                    self.connection.send_packet(FullSyncRequest(pid, last_sync).encode())
 
             self.update_listener_thread = Thread(JavaUpdateListener(self.connection, projects, self._rename_engine))
             self.update_listener_thread.start()

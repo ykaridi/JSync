@@ -117,9 +117,12 @@ class JSync(object):
 
             for dex_reader in dex_readers_field.get(code_loader):
                 project = project_id(dex_reader)
-                self._connection.send_packet(Subscribe(project).encode())
-                self._connection.send_packet(FullSyncRequest(project).encode())
                 projects.append(project)
+
+                self._connection.send_packet(Subscribe(project).encode())
+
+                last_sync = int(self._rename_engine.get_metadata_property(project, 'last_sync') or 0)
+                self._connection.send_packet(FullSyncRequest(project, last_sync).encode())
 
         self._update_thread = Thread(JavaUpdateListener(self._connection, projects, self._rename_engine))
         self._update_thread.start()
