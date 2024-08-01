@@ -81,6 +81,12 @@ class JSync(object):
             config_path
         )
 
+        if host is None or port is None or name is None:
+            self._logger.error("[JSync] No server specified, exiting...")
+            return
+
+        self._logger.error("[JSync] Activating...")
+
         self._connection = JADXConnection(self, self._logger, host, port, name)
 
         self._initialization_thread = Thread(ThreadWrapper(self.initialize))

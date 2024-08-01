@@ -80,9 +80,15 @@ class JSync(IScript):
             config_path
         )
 
+        if host is None or port is None or name is None:
+            print("[JSync] No server specified, exiting...")
+            return
+
+        print("[JSync] Activating...")
+
         # Create server connection socket
         self.connection = JEBConnection(self, host, port, name)
-        print("[jsync] Successfully connected to server as %s" % name)
+        print("[JSync] Successfully connected to server as %s" % name)
 
         self._initialization_thread = Thread(ThreadWrapper(self.initialize, ctx))
         self._initialization_thread.start()

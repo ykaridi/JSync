@@ -11,8 +11,8 @@ def query_server(query_function, configuration_file):
 
     while True:
         connection_description = query_function(default_connection)
-        if connection_description == "":
-            return
+        if connection_description == "" or connection_description is None:
+            return None, None, None
         m = re.match(r"(?P<name>.*)@(?P<host>.*)(:(?P<port>[0-9]*))", connection_description)
         if m is not None:
             break
