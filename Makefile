@@ -38,12 +38,12 @@ server: init
 	fi
 
 	@echo "Packing server"
-	rm -rf dist/server_zip
+	rm -rf dist/server_zip dist/server.zip
 	mkdir dist/server_zip
-	ln -s ../../dist-resources dist/server_zip/
-	ln -s ../../server dist/server_zip/
-	ln -s ../../server/__main__.py dist/server_zip/
-	ln -s ../../common dist/server_zip/
+	ln -s ../../dist-resources dist/server_zip/resources
+	ln -s ../../server dist/server_zip/server
+	ln -s ../../server/__main__.py dist/server_zip/__main__.py
+	ln -s ../../common dist/server_zip/common
 	cd dist/server_zip && zip -r ../jsync-server.zip *
 	rm -rf dist/server_zip
 
