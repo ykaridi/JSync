@@ -14,7 +14,7 @@ class Dataclass(object):
 
     def clone(self, **kwargs):
         # type: (**object) -> Dataclass
-        v = vars(self)
+        v = dict(vars(self))
         v.update(kwargs)
         cls = type(self)
         return cls(**v)

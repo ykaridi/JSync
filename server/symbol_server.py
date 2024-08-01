@@ -94,9 +94,6 @@ class SymbolServer(ABC):
                     for symbol in symbols:
                         symbol.author = name
 
-                    # TODO: Is this really needed?
-                    # symbols = list(store.changed_symbols(symbols))
-
                     if command.loggable:
                         for symbol in symbols:
                             logging.info(f"[Symbol] {name} @ {command.project}:"

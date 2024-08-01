@@ -38,6 +38,11 @@ class RenameEngineABC(object):
 
         self._symbol_evaluator = get_symbol_evaluator()  # type: evaluate_symbol
 
+    @property
+    def self_author(self):
+        # type: () -> str
+        return self._self_author
+
     @abstractmethod
     def get_client_symbol_store(self, project):
         # type: (str) -> ClientSymbolStoreABC
@@ -53,19 +58,29 @@ class RenameEngineABC(object):
         # type: (str, Symbol) -> str
         raise NotImplementedError
 
-    def get_symbol_latest_rename(self, project, symbol):
+    def get_symbol_latest_known_rename(self, project, symbol):
         # type: (str, Symbol) -> str
-        return self._symbol_stores[project].get_latest_rename(symbol.canonical_signature)
+        symbol = self._symbol_stores[project].get_latest_known_rename(symbol.canonical_signature)
+        return None if symbol is None else symbol.name
 
-    def is_symbol_synced(self, project, symbol, is_renamed):
+    def get_latest_known_renames(self, project):
+        # type: (str) -> iter[Symbol]
+        return self._symbol_stores[project].latest_known_renames.values()
+
+    def is_symbol_rename_known(self, project, symbol, is_renamed):
         # type: (str, Symbol, bool) -> bool
-        latest_rename = self.get_symbol_latest_rename(project, symbol)
+        latest_rename = self.get_symbol_latest_known_rename(project, symbol)
         return ((not is_renamed) and latest_rename is None) or (is_renamed and latest_rename == symbol.name)
 
-    def record_rename(self, project, symbol):
-        # type: (str, Symbol) -> None
+    def record_latest_known_renames(self, project, symbols):
+        # type: (str, list[Symbol]) -> None
+        symbols = [
+            symbol if symbol.name is not None and symbol.name != self.get_original_name(project, symbol)
+            else symbol.named(None)
+            for symbol in symbols
+        ]
         with self._records_lock:
-            self._symbol_stores[project].record_rename(symbol.canonical_signature, symbol.name)
+            self._symbol_stores[project].record_latest_known_renames(symbols)
 
     def record_symbols(self, project, symbols, dirty=True):
         # type: (str, list[Symbol], bool) -> None
@@ -92,27 +107,26 @@ class RenameEngineABC(object):
         # type: (str, Symbol) -> Symbol
         symbols = list(self._symbol_stores[project].get_symbols(canonical_signature=symbol.canonical_signature))
         if len(symbols) == 0:
-            return symbol.stripped.clone(name=self.get_original_name(project, symbol))
+            return symbol.stripped.named(self.get_original_name(project, symbol))
 
-        return self._symbol_evaluator(symbols, self._self_author)
+        return self._symbol_evaluator(symbols, self.self_author)
 
     def flush_symbol(self, project, symbol):
         # type: (str, Symbol) -> None
-        print(symbol)
         _symbol = self.evaluate_symbol(project, symbol.stripped)
         if symbol.canonical_signature != _symbol.canonical_signature:
             raise EnvironmentError("Symbol Evaluator is inconsistent - changes canonical signature!")
 
         symbol = _symbol
 
-        old_name = self.get_symbol_latest_rename(project, symbol)
-        self.record_rename(project, symbol)
+        old_name = self.get_symbol_latest_known_rename(project, symbol)
+        self.record_latest_known_renames(project, [symbol])
         if not self._enqueue_rename(project, symbol):
-            self.record_rename(project, symbol.clone(name=old_name))
+            self.record_latest_known_renames(project, [symbol.named(old_name)])
 
         self._dirty_symbols.setdefault(project, set()).remove(symbol.stripped)
 
-    def flush_symbols(self):
+    def flush_all_symbols(self):
         for project, dirty_symbols in self._dirty_symbols.items():
             for dirty_symbol in list(dirty_symbols):
                 self.flush_symbol(project, dirty_symbol)

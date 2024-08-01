@@ -6,7 +6,6 @@ from .rename_engine import RenameEngineABC
 class UpdateListener(object):
     def __init__(self, connection, projects, rename_engine):
         # type: (ConnectionABC, list[str], RenameEngineABC) -> None
-        super(UpdateListener, self).__init__()
         self._connection = connection
         self._rename_engine = rename_engine
         self._projects = projects
@@ -17,7 +16,7 @@ class UpdateListener(object):
         if isinstance(command, DownstreamSymbols):
             if command.project in self._projects:
                 self._rename_engine.record_symbols(command.project, command.symbols)
-                self._rename_engine.flush_symbols()
+                self._rename_engine.flush_all_symbols()
 
     def receive_packet(self):
         # type: () -> bytes

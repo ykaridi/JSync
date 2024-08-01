@@ -14,7 +14,7 @@ class JSyncPlugin : JadxPlugin {
     private val uri = Util.getJarLocation(JSyncPlugin::class.java)!!
 
     override fun getPluginInfo(): JadxPluginInfo {
-        logger.info("[JSync] loading from <$uri>")
+        logger.info("[JSync] Loading from <$uri>")
         return JadxPluginInfo(PLUGIN_ID, "JSync",
             "Synchronization of symbols across multiple users")
     }

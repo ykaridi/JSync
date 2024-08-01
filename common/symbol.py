@@ -1,3 +1,5 @@
+import time
+
 from .dataclass import Dataclass
 
 
@@ -22,6 +24,19 @@ class Symbol(Dataclass):
     @property
     def stripped(self):
         return Symbol(self.symbol_type, self.canonical_signature, None)
+
+    @property
+    def timestamped(self):
+        # type: () -> 'Symbol'
+        return self.clone(timestamp=int(time.time()))
+
+    def authored(self, author):
+        # type: (str) -> 'Symbol'
+        return self.clone(author=author)
+
+    def named(self, name):
+        # type: (str) -> 'Symbol'
+        return self.clone(name=name)
 
     def __hash__(self):
         return hash(self.as_tuple)

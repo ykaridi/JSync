@@ -13,18 +13,23 @@ DELETE FROM symbols WHERE author = ? AND canonical_signature = ?;
 CREATE_RENAME_RECORDS_TABLE_QUERY = """
 CREATE TABLE IF NOT EXISTS rename_records (
     canonical_signature TEXT,
+    symbol_type INTEGER,
     name TEXT,
     PRIMARY KEY (canonical_signature)
 );
 """
 PUSH_RENAME_QUERY = """
-INSERT OR REPLACE INTO rename_records (canonical_signature, name) VALUES (?, ?);
+INSERT OR REPLACE INTO rename_records (canonical_signature, symbol_type, name) VALUES (?, ?, ?);
 """
 DELETE_RENAME_QUERY = """
 DELETE FROM rename_records WHERE canonical_signature = ?;
 """
-GET_RENAME_QUERY = """
-SELECT name
+GET_RENAME_BY_CANONICAL_SIGNATURE_QUERY = """
+SELECT name, symbol_type
 FROM rename_records
 WHERE canonical_signature = ?;
+"""
+GET_RENAMES_QUERY = """
+SELECT canonical_signature, symbol_type, name
+FROM rename_records;
 """

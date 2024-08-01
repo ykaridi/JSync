@@ -24,11 +24,10 @@ def project_id(item):
             dex_file_index = item.dexFileIndex
 
         if dex_file_index < 0:
-            raise ValueError("Invalid Dex File Index")
+            raise ValueError("Invalid dex file index. Is project JDB2 from jeb version < 5.13?")
         dex_file = item.dex.getDexFile(dex_file_index)
     else:
-        # TODO: Fix!
-        raise ValueError("%s currently not supported" % type(item))
+        raise TypeError("Unexpected %s encountered" % type(item))
 
     internal_id = id(dex_file)
     if internal_id not in CACHED_IDENTIFIERS:
